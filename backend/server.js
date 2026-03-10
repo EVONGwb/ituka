@@ -11,6 +11,10 @@ import { connectDB } from "./src/config/db.js";
 import healthRoutes from "./src/routes/health.routes.js";
 import authRoutes from "./src/routes/auth.routes.js";
 import usersRoutes from "./src/routes/users.routes.js";
+import productsRoutes from "./src/routes/products.routes.js";
+import ordersRoutes from "./src/routes/orders.routes.js";
+import chatRoutes from "./src/routes/chat.routes.js";
+
 import { notFound } from "./src/middlewares/notFound.js";
 import { errorHandler } from "./src/middlewares/errorHandler.js";
 
@@ -35,9 +39,12 @@ app.use(
 app.use(httpLogger);
 
 // Rutas
-app.use("/api", healthRoutes);
-app.use("/api", usersRoutes);
-app.use("/api", authRoutes);
+app.use("/api/health", healthRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/users", usersRoutes);
+app.use("/api/products", productsRoutes);
+app.use("/api/orders", ordersRoutes);
+app.use("/api/chat", chatRoutes);
 
 // 404 + errores
 app.use(notFound);
@@ -47,7 +54,7 @@ async function start() {
   await connectDB(env.MONGODB_URI);
 
   app.listen(env.PORT, () => {
-    logger.info(`🚀 API en http://localhost:${env.PORT} (${env.NODE_ENV})`);
+    logger.info(`🚀 ITUKA Backend en http://localhost:${env.PORT} (${env.NODE_ENV})`);
   });
 }
 
