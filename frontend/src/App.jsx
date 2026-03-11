@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import { getToken } from "./lib/auth";
 import { AuthProvider } from "./context/AuthContext";
 
@@ -40,6 +41,7 @@ function Home() {
       <Route path="/" element={<WelcomeScreen />} />
       <Route path="/login" element={<Login onAuthed={onAuthed} />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
       <Route path="/register" element={<Register onAuthed={onAuthed} />} />
       <Route path="/dashboard" element={<Dashboard onLogout={onLogout} />} />
 

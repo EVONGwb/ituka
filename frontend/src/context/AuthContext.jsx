@@ -57,29 +57,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const loginWithGoogle = async (authResult) => {
-    try {
-      // authResult puede ser el objeto de useGoogleLogin (tiene access_token)
-      // o un objeto con credential (si usáramos el componente GoogleLogin)
-      const payload = authResult.credential 
-        ? { credential: authResult.credential }
-        : { accessToken: authResult.access_token };
-
-      const data = await apiFetch('/auth/google', {
-        method: 'POST',
-        body: payload
-      });
-
-      localStorage.setItem('ituka_token', data.token);
-      localStorage.setItem('ituka_user', JSON.stringify(data.user));
-      setUser(data.user);
-      
-      return data.user;
-    } catch (error) {
-      throw error;
-    }
-  };
-
   const register = async (userData) => {
     try {
       const data = await apiFetch('/auth/register', {
@@ -124,6 +101,29 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const forgotPassword = async (email) => {
+    try {
+      await apiFetch('/auth/forgot-password', {
+        method: 'POST',
+        body: { email }
+      });
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const resetPassword = async (token, password) => {
+    try {
+      const data = await apiFetch(`/auth/reset-password/${token}`, {
+        method: 'POST',
+        body: { password }
+      });
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('ituka_token');
     localStorage.removeItem('ituka_user');
@@ -133,11 +133,12 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     login,
-    loginWithGoogle,
     register,
     updateProfile,
     logout,
-    loading
+    loading,
+    forgotPassword,
+    resetPassword
   };
 
   return (

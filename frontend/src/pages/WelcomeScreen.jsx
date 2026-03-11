@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useGoogleLogin } from '@react-oauth/google';
 
 export default function WelcomeScreen() {
   const [identifier, setIdentifier] = useState('');
@@ -10,27 +9,8 @@ export default function WelcomeScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, loginWithGoogle } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
-
-  const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setLoading(true);
-      try {
-        const user = await loginWithGoogle(tokenResponse);
-        if (user.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/');
-        }
-      } catch (err) {
-        setError(err.message || 'Error al iniciar sesión con Google');
-      } finally {
-        setLoading(false);
-      }
-    },
-    onError: () => setError('Error al conectar con Google'),
-  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -128,7 +108,7 @@ export default function WelcomeScreen() {
               disabled={loading}
               className="w-full rounded-xl border border-[#c5a25a] bg-[linear-gradient(180deg,#f1d99a_0%,#e0bd6a_100%)] px-4 py-2.5 sm:py-3.5 text-base sm:text-lg font-semibold text-[#2f241b] transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#d9b66b]/45 disabled:cursor-not-allowed disabled:opacity-65"
             >
-              {loading ? 'Iniciando sesión…' : 'Entrar ahora'}
+              {loading ? 'Entrando...' : 'Iniciar sesión'}
             </button>
           </form>
 
@@ -144,30 +124,11 @@ export default function WelcomeScreen() {
             <div className="h-px flex-1 bg-[#d9cfbe]" />
           </div>
 
-          <button
-            type="button"
-            onClick={() => handleGoogleLogin()}
-            className="mt-3 sm:mt-6 flex w-full items-center justify-center gap-3 rounded-xl border border-[#d5d9df] bg-white px-4 py-2.5 sm:py-3.5 text-sm sm:text-lg font-semibold text-[#2f241b] transition hover:bg-[#f8fafc]"
-          >
-            <svg width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className="sm:w-5 sm:h-5">
-              <path fill="#EA4335" d="M24 9.5c3.54 0 6.73 1.22 9.23 3.6l6.9-6.9C36.36 2.72 30.6 0 24 0 14.64 0 6.53 5.38 2.56 13.22l8.06 6.26C12.42 13.22 17.78 9.5 24 9.5z"/>
-              <path fill="#4285F4" d="M46.5 24c0-1.64-.15-3.22-.43-4.75H24v9h12.6c-.54 2.9-2.17 5.36-4.62 7.02l7.05 5.47C43.87 36.25 46.5 30.63 46.5 24z"/>
-              <path fill="#FBBC05" d="M10.62 28.52A14.5 14.5 0 0 1 9.86 24c0-1.57.27-3.1.76-4.52l-8.06-6.26A23.96 23.96 0 0 0 0 24c0 3.87.93 7.53 2.56 10.78l8.06-6.26z"/>
-              <path fill="#34A853" d="M24 48c6.6 0 12.36-2.18 16.5-5.9l-7.05-5.47c-1.96 1.32-4.47 2.1-9.45 2.1-6.22 0-11.58-3.72-13.38-8.98l-8.06 6.26C6.53 42.62 14.64 48 24 48z"/>
-            </svg>
-            Continuar con Google
-          </button>
-
-          <Link
-            to="/register"
-            className="mt-2 sm:mt-4 block w-full rounded-xl border border-[#cbbda7] bg-white px-4 py-2.5 sm:py-3.5 text-center text-sm sm:text-lg font-semibold text-[#2f241b] transition hover:bg-[#f7f3eb] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#cbbda7]/45"
-          >
-            Crear cuenta
-          </Link>
-
           <div className="mt-3 sm:mt-6 text-center text-xs sm:text-sm text-[#5b524b]">
-            ¿Ya tienes cuenta?{' '}
-            <span className="font-semibold text-[#2f241b]">Puedes entrar desde aquí mismo</span>
+            ¿No tienes cuenta?{' '}
+            <Link to="/register" className="font-semibold text-[#2f241b] hover:underline">
+              Crear cuenta
+            </Link>
           </div>
         </div>
       </div>

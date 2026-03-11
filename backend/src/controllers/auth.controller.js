@@ -1,9 +1,8 @@
 import { User } from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
-import { OAuth2Client } from 'google-auth-library';
-
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+import crypto from 'crypto';
+import { sendEmail } from '../utils/email.js';
 
 // Helper to generate token
 const generateToken = (id, role) => {
@@ -167,82 +166,106 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-// Google Login
-export const googleLogin = async (req, res) => {
-  const { credential, accessToken } = req.body;
-  
+// Forgot Password
+export const forgotPassword = async (req, res) => {
   try {
-    let name, email, googleId, picture;
+    const user = await User.findOne({ email: req.body.email });
 
-    if (credential) {
-      const ticket = await client.verifyIdToken({
-        idToken: credential,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
-      const payload = ticket.getPayload();
-      name = payload.name;
-      email = payload.email;
-      googleId = payload.sub;
-      picture = payload.picture;
-    } else if (accessToken) {
-      const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Error al validar token de acceso');
-      }
-      
-      const data = await response.json();
-      name = data.name;
-      email = data.email;
-      googleId = data.sub;
-      picture = data.picture;
-    } else {
-      return res.status(400).json({ message: 'Token de Google requerido' });
+    if (!user) {
+      return res.status(404).json({ message: 'No existe usuario con ese email' });
     }
 
-    let user = await User.findOne({ email });
+    // Obtener token de reseteo
+    const resetToken = user.getResetPasswordToken();
 
-    if (user) {
-      // Si el usuario existe pero no tiene googleId, lo vinculamos
-      if (!user.googleId) {
-        user.googleId = googleId;
-        await user.save();
-      }
-    } else {
-      // Crear nuevo usuario
-      user = await User.create({
-        name,
-        email,
-        googleId,
-        // Password es opcional gracias a la modificación en el modelo
+    await user.save({ validateBeforeSave: false });
+
+    // En producción usar variable de entorno, fallback a localhost
+    const frontendUrl = process.env.CORS_ORIGINS?.[0] || 'http://localhost:5173';
+    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
+
+    const message = `Has solicitado resetear tu contraseña. Por favor ve a este link para crear una nueva contraseña: \n\n ${resetUrl}`;
+
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'ITUKA - Recuperación de contraseña',
+        text: message,
+        html: `
+          <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f6f3ec; padding: 40px; border-radius: 16px;">
+            <div style="text-align: center; margin-bottom: 24px;">
+               <h1 style="color: #3b2e24; margin: 0; font-family: serif;">ITUKA</h1>
+               <p style="color: #6a6058; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px;">Skin Care</p>
+            </div>
+            <div style="background-color: white; padding: 32px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+              <h2 style="color: #3b2e24; margin-top: 0;">Recuperar contraseña</h2>
+              <p style="color: #4b5563; line-height: 1.6;">Hola ${user.name},</p>
+              <p style="color: #4b5563; line-height: 1.6;">Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en ITUKA. Si no has sido tú, puedes ignorar este mensaje.</p>
+              <p style="color: #4b5563; line-height: 1.6;">Para continuar, haz clic en el siguiente botón:</p>
+              
+              <div style="text-align: center; margin: 32px 0;">
+                <a href="${resetUrl}" style="display: inline-block; background-image: linear-gradient(to bottom, #f1d99a, #e0bd6a); color: #2f241b; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px;">Restablecer contraseña</a>
+              </div>
+              
+              <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">Este enlace expirará en 10 minutos por seguridad.</p>
+            </div>
+            <div style="text-align: center; margin-top: 24px;">
+              <p style="color: #9ca3af; font-size: 12px;">© ${new Date().getFullYear()} ITUKA Skin Care. Todos los derechos reservados.</p>
+            </div>
+          </div>
+        `
       });
+
+      res.status(200).json({ success: true, message: 'Email enviado correctamente' });
+    } catch (error) {
+      console.error(error);
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+
+      await user.save({ validateBeforeSave: false });
+
+      return res.status(500).json({ message: 'El email no pudo ser enviado' });
     }
+  } catch (error) {
+    console.error('ForgotPassword error:', error);
+    res.status(500).json({ message: 'Error en el servidor' });
+  }
+};
+
+// Reset Password
+export const resetPassword = async (req, res) => {
+  try {
+    // Hashear el token enviado para compararlo con el guardado
+    const resetPasswordToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Token inválido o expirado' });
+    }
+
+    // Setear nueva password
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
 
     const token = generateToken(user._id, user.role);
 
-    const userData = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      phone: user.phone,
-      address: user.address,
-      skinType: user.skinType,
-      skinNeeds: user.skinNeeds,
-      favorites: user.favorites,
-      picture: picture // Opcional si queremos guardar la foto
-    };
-
-    res.json({
-      message: 'Login con Google exitoso',
+    res.status(200).json({
+      success: true,
       token,
-      user: userData
+      message: 'Contraseña actualizada correctamente'
     });
-
   } catch (error) {
-    console.error('Google login error:', error);
-    res.status(401).json({ message: 'Token de Google inválido' });
+    console.error('ResetPassword error:', error);
+    res.status(500).json({ message: 'Error al resetear contraseña' });
   }
 };
