@@ -1,10 +1,13 @@
 import mongoose from 'mongoose';
 
 const messageSchema = new mongoose.Schema({
-  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Opcional si es mensaje a soporte general
-  content: { type: String, required: true },
-  read: { type: Boolean, default: false },
+  chatId: { type: mongoose.Schema.Types.ObjectId, ref: 'Chat', required: true },
+  senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  senderRole: { type: String, enum: ['user', 'admin', 'support'], required: true },
+  messageType: { type: String, enum: ['text', 'image', 'payment_proof'], default: 'text' },
+  content: { type: String }, // Puede ser texto o vacío si es solo imagen
+  imageUrl: { type: String }, // URL de la imagen si messageType es image o payment_proof
+  readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   createdAt: { type: Date, default: Date.now }
 });
 

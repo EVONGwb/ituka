@@ -1,14 +1,10 @@
 import express from 'express';
+import { getUsers, getUserHistory } from '../controllers/user.controller.js';
+import { protect, admin } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-// Placeholder routes
-router.get('/users', (req, res) => {
-  res.json({ users: [] });
-});
-
-router.get('/users/:id', (req, res) => {
-  res.json({ user: { id: req.params.id } });
-});
+router.get('/', protect, admin, getUsers);
+router.get('/:id/history', protect, admin, getUserHistory);
 
 export default router;

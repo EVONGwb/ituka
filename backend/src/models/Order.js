@@ -8,7 +8,22 @@ const orderSchema = new mongoose.Schema({
     price: { type: Number, required: true }
   }],
   total: { type: Number, required: true },
-  status: { type: String, enum: ['pending', 'processing', 'shipped', 'completed', 'cancelled'], default: 'pending' },
+  note: { type: String },
+  status: { 
+    type: String, 
+    enum: [
+      'solicitud_recibida', 
+      'en_conversacion', 
+      'confirmado', 
+      'pagado', 
+      'en_preparacion', 
+      'enviado', 
+      'listo_para_recoger', 
+      'entregado', 
+      'cancelado'
+    ], 
+    default: 'solicitud_recibida' 
+  },
   createdAt: { type: Date, default: Date.now }
 });
 

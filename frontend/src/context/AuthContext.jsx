@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { apiFetch } from '../lib/api';
 
 const AuthContext = createContext();
 
@@ -15,36 +16,109 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('ituka_user');
-    const storedToken = localStorage.getItem('ituka_token');
+    const initAuth = async () => {
+      const storedToken = localStorage.getItem('ituka_token');
+      const storedUser = localStorage.getItem('ituka_user');
 
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+      if (storedToken && storedUser) {
+        setUser(JSON.parse(storedUser));
+        // Opcional: Validar token con backend aquí
+        try {
+           const data = await apiFetch('/auth/me', { token: storedToken });
+           setUser(data);
+           localStorage.setItem('ituka_user', JSON.stringify(data));
+        } catch (error) {
+           console.error("Token inválido o expirado", error);
+           localStorage.removeItem('ituka_token');
+           localStorage.removeItem('ituka_user');
+           setUser(null);
+        }
+      }
+      setLoading(false);
+    };
+
+    initAuth();
   }, []);
 
   const login = async (email, password) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5050'}/api/auth/login`, {
+      const data = await apiFetch('/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+        body: { email, password }
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Error al iniciar sesión');
-      }
 
       localStorage.setItem('ituka_token', data.token);
       localStorage.setItem('ituka_user', JSON.stringify(data.user));
       setUser(data.user);
       
       return data.user;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const loginWithGoogle = async (authResult) => {
+    try {
+      // authResult puede ser el objeto de useGoogleLogin (tiene access_token)
+      // o un objeto con credential (si usáramos el componente GoogleLogin)
+      const payload = authResult.credential 
+        ? { credential: authResult.credential }
+        : { accessToken: authResult.access_token };
+
+      const data = await apiFetch('/auth/google', {
+        method: 'POST',
+        body: payload
+      });
+
+      localStorage.setItem('ituka_token', data.token);
+      localStorage.setItem('ituka_user', JSON.stringify(data.user));
+      setUser(data.user);
+      
+      return data.user;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const register = async (userData) => {
+    try {
+      const data = await apiFetch('/auth/register', {
+        method: 'POST',
+        body: userData
+      });
+
+      localStorage.setItem('ituka_token', data.token);
+      localStorage.setItem('ituka_user', JSON.stringify(data.user));
+      setUser(data.user);
+
+      return data.user;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const updateProfile = async (profileData) => {
+    try {
+      const token = localStorage.getItem('ituka_token');
+      const data = await apiFetch('/auth/profile', {
+        method: 'PUT',
+        token,
+        body: profileData
+      });
+
+      // Update local storage with new user data
+      // Note: The backend returns { ...user, token: ... }
+      if (data.token) {
+        localStorage.setItem('ituka_token', data.token);
+      }
+      
+      // Remove token from user object before saving to state/storage if backend includes it in user object
+      const { token: newToken, ...userWithoutToken } = data;
+      
+      localStorage.setItem('ituka_user', JSON.stringify(userWithoutToken));
+      setUser(userWithoutToken);
+
+      return userWithoutToken;
     } catch (error) {
       throw error;
     }
@@ -59,6 +133,9 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     login,
+    loginWithGoogle,
+    register,
+    updateProfile,
     logout,
     loading
   };

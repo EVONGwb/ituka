@@ -2,17 +2,29 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
   name: { type: String, required: true },
-  role: { type: String, enum: ['client', 'admin'], default: 'client' },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: function() { return !this.googleId; } },
+  googleId: { type: String, unique: true, sparse: true },
+  phone: { type: String },
+  address: {
+    street: String,
+    city: String,
+    state: String,
+    zip: String,
+    country: String
+  },
+  skinType: { type: String },
+  skinNeeds: { type: String },
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
-  createdAt: { type: Date, default: Date.now }
+  role: { type: String, enum: ['customer', 'admin'], default: 'customer' }
+}, {
+  timestamps: true // Adds createdAt and updatedAt automatically
 });
 
 // Hashear password antes de guardar
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password') || !this.password) return next();
   
   try {
     const salt = await bcrypt.genSalt(10);

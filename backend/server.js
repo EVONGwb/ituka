@@ -13,15 +13,32 @@ import authRoutes from "./src/routes/auth.routes.js";
 import usersRoutes from "./src/routes/users.routes.js";
 import productsRoutes from "./src/routes/products.routes.js";
 import ordersRoutes from "./src/routes/orders.routes.js";
+import cartRoutes from "./src/routes/cart.routes.js";
+import requestsRoutes from "./src/routes/requests.routes.js";
 import chatRoutes from "./src/routes/chat.routes.js";
+import adminRoutes from "./src/routes/admin.routes.js";
 
 import { notFound } from "./src/middlewares/notFound.js";
 import { errorHandler } from "./src/middlewares/errorHandler.js";
 
+import http from 'http';
+import path from 'path';
+import { initSocket } from './src/sockets/socket.js';
+
 const app = express();
+const server = http.createServer(app);
+
+// Servir archivos estáticos (imágenes de chat)
+const uploadDir = path.join(process.cwd(), 'public/uploads');
+app.use('/uploads', express.static(uploadDir));
+
+// Inicializar Socket.io
+initSocket(server);
+
 app.use(
   cors({
-    origin: env.CORS_ORIGINS.length ? env.CORS_ORIGINS : true
+    origin: env.CORS_ORIGINS.length ? env.CORS_ORIGINS : true,
+    credentials: true
   })
 );
 app.use(express.json()); app.use(helmet());
@@ -44,7 +61,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/products", productsRoutes);
 app.use("/api/orders", ordersRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/requests", requestsRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/admin", adminRoutes);
 
 // 404 + errores
 app.use(notFound);
@@ -53,7 +73,7 @@ app.use(errorHandler);
 async function start() {
   await connectDB(env.MONGODB_URI);
 
-  app.listen(env.PORT, () => {
+  server.listen(env.PORT, () => {
     logger.info(`🚀 ITUKA Backend en http://localhost:${env.PORT} (${env.NODE_ENV})`);
   });
 }

@@ -1,100 +1,138 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { getToken, clearToken } from "../lib/auth";
+import { ArrowRight, Star } from "lucide-react";
 import { apiFetch } from "../lib/api";
-import { clearToken, getToken } from "../lib/auth";
 
 export default function Dashboard({ onLogout }) {
-  const [me, setMe] = useState(null);
-  const [users, setUsers] = useState([]);
-  const [error, setError] = useState("");
-  const [msg, setMsg] = useState("");
-
-  const [newEmail, setNewEmail] = useState("");
-  const [newName, setNewName] = useState("");
-  const [newPass, setNewPass] = useState("");
-  const [newRole, setNewRole] = useState("user");
-
-  const token = getToken();
-
-  async function load() {
-    setError("");
-    try {
-      const rMe = await apiFetch("/auth/me", { token });
-      setMe(rMe.data);
-
-      const rUsers = await apiFetch("/users", { token });
-      setUsers(rUsers.data);
-    } catch (err) {
-      setError(err.message);
-    }
-  }
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line
+    // Just a quick check to get user name if available, or we could store in context
+    const fetchUser = async () => {
+        try {
+            const token = getToken();
+            if(token) {
+                const res = await apiFetch('/auth/me', { token });
+                setUser(res.data);
+            }
+        } catch(e) { console.error(e) }
+    }
+    fetchUser();
   }, []);
 
-  async function logout() {
-    clearToken();
-    onLogout();
-  }
-
-  async function createUserAdmin(e) {
-    e.preventDefault();
-    setMsg("");
-    setError("");
-    try {
-      const res = await apiFetch("/auth/register-admin", {
-        token,
-        method: "POST",
-        body: { email: newEmail, password: newPass, name: newName, role: newRole }
-      });
-      setMsg(`Creado: ${res.data.email}`);
-      setNewEmail(""); setNewName(""); setNewPass(""); setNewRole("user");
-      await load();
-    } catch (err) {
-      setError(err.message);
-    }
-  }
-
   return (
-    <div style={{ maxWidth: 900, margin: "30px auto", fontFamily: "system-ui" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2>Dashboard</h2>
-        <button onClick={logout}>Salir</button>
-      </div>
-
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
-
-      {me && (
-        <div style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
-          <b>Yo:</b> {me.email} — <b>role:</b> {me.role}
+    <div className="font-sans text-[#3E2723]">
+      {/* Hero Section */}
+      <section className="relative h-[80vh] bg-[#EBE5CE] flex items-center overflow-hidden">
+        <div className="absolute inset-0 z-0">
+           {/* Background Image Placeholder - In real app, this would be a high quality image */}
+           <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-multiply"></div>
+           <div className="absolute inset-0 bg-gradient-to-r from-[#F5F5DC] via-[#F5F5DC]/60 to-transparent"></div>
         </div>
-      )}
-
-      <h3 style={{ marginTop: 20 }}>Usuarios</h3>
-      <div style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12 }}>
-        {users.map((u) => (
-          <div key={u._id} style={{ display: "flex", gap: 10, padding: "6px 0", borderBottom: "1px solid #eee" }}>
-            <span style={{ width: 260 }}>{u.email}</span>
-            <span style={{ width: 180 }}>{u.name}</span>
-            <span style={{ width: 100 }}>{u.role}</span>
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+          <div>
+            <span className="inline-block py-1 px-3 border border-[#556B2F] rounded-full text-[#556B2F] text-xs font-bold uppercase tracking-widest mb-6">
+              Nueva Colección 2026
+            </span>
+            <h1 className="text-5xl md:text-7xl font-serif font-bold text-[#3E2723] leading-tight mb-6">
+              La naturaleza <br/> <span className="text-[#556B2F] italic">renace</span> en tu piel.
+            </h1>
+            <p className="text-lg text-[#5D4037] mb-10 max-w-md leading-relaxed">
+              Descubre el poder de los ingredientes botánicos africanos en nuestra nueva línea de cuidado facial regenerativo.
+            </p>
+            <div className="flex gap-4">
+              <Link 
+                to="/products" 
+                className="px-8 py-4 bg-[#556B2F] text-white rounded-full font-medium hover:bg-[#3E2723] transition-colors shadow-lg shadow-[#556B2F]/20"
+              >
+                Ver Productos
+              </Link>
+              <Link 
+                to="/about" 
+                className="px-8 py-4 bg-transparent border border-[#3E2723] text-[#3E2723] rounded-full font-medium hover:bg-[#3E2723] hover:text-white transition-colors"
+              >
+                Nuestra Historia
+              </Link>
+            </div>
           </div>
-        ))}
-        {users.length === 0 && <p style={{ opacity: 0.7 }}>No hay usuarios</p>}
-      </div>
+        </div>
+      </section>
 
-      <h3 style={{ marginTop: 20 }}>Crear usuario (solo admin)</h3>
-      <form onSubmit={createUserAdmin} style={{ display: "grid", gap: 10, border: "1px solid #ddd", borderRadius: 8, padding: 12 }}>
-        <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Nombre" />
-        <input value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="Email" />
-        <input value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder="Password" type="password" />
-        <select value={newRole} onChange={(e) => setNewRole(e.target.value)}>
-          <option value="user">user</option>
-          <option value="admin">admin</option>
-        </select>
-        <button type="submit">Crear</button>
-        {msg && <p style={{ color: "green" }}>{msg}</p>}
-      </form>
+      {/* Featured Products Preview */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#3E2723] mb-4">Favoritos de ITUKA</h2>
+            <div className="w-24 h-1 bg-[#D4AF37] mx-auto rounded-full"></div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Mock Products for Home Display */}
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="group cursor-pointer">
+                <div className="relative h-96 bg-[#F5F5DC] rounded-2xl overflow-hidden mb-6">
+                  <img 
+                    src={`https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D`} 
+                    alt="Product" 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest text-[#3E2723]">
+                    Best Seller
+                  </div>
+                </div>
+                <h3 className="text-xl font-serif font-bold text-[#3E2723] group-hover:text-[#556B2F] transition-colors">
+                  Sérum Regenerador {i}
+                </h3>
+                <div className="flex items-center gap-2 mb-2">
+                   <div className="flex text-[#D4AF37]">
+                     {[...Array(5)].map((_, starI) => <Star key={starI} className="w-3 h-3 fill-current" />)}
+                   </div>
+                   <span className="text-xs text-stone-400">(24 reseñas)</span>
+                </div>
+                <p className="text-[#5D4037] font-medium">$45.00</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-16">
+             <Link to="/products" className="inline-flex items-center gap-2 text-[#556B2F] font-bold uppercase tracking-widest hover:text-[#3E2723] transition-colors border-b border-[#556B2F] pb-1 hover:border-[#3E2723]">
+                Ver toda la colección <ArrowRight className="w-4 h-4" />
+             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Banner Section */}
+      <section className="py-24 bg-[#3E2723] text-[#F5F5DC] relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')]"></div>
+        <div className="max-w-7xl mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center gap-12">
+           <div className="flex-1">
+             <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight">
+               Ingredientes puros, <br/> <span className="text-[#D4AF37]">resultados reales.</span>
+             </h2>
+             <p className="text-[#F5F5DC]/80 text-lg mb-8 max-w-lg">
+               Cada gota de nuestros productos contiene la esencia de la naturaleza. Sin parabenos, sin sulfatos, 100% cruelty-free.
+             </p>
+             <Link to="/about" className="text-[#D4AF37] border-b border-[#D4AF37] pb-1 hover:text-white hover:border-white transition-colors">
+               Conoce nuestros ingredientes
+             </Link>
+           </div>
+           <div className="flex-1 flex gap-4">
+              <div className="bg-[#F5F5DC]/10 p-6 rounded-2xl backdrop-blur-sm border border-[#F5F5DC]/20 flex-1 text-center">
+                 <div className="text-3xl mb-2">🌱</div>
+                 <h4 className="font-serif font-bold mb-2">100% Natural</h4>
+                 <p className="text-sm text-[#F5F5DC]/60">Certificado orgánico</p>
+              </div>
+              <div className="bg-[#F5F5DC]/10 p-6 rounded-2xl backdrop-blur-sm border border-[#F5F5DC]/20 flex-1 text-center">
+                 <div className="text-3xl mb-2">🐰</div>
+                 <h4 className="font-serif font-bold mb-2">Cruelty Free</h4>
+                 <p className="text-sm text-[#F5F5DC]/60">Respetamos la vida</p>
+              </div>
+           </div>
+        </div>
+      </section>
     </div>
   );
 }
