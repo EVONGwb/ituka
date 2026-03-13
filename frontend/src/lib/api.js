@@ -1,6 +1,16 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5050/api";
+function normalizeApiBase(base) {
+  if (!base) return "";
+  const trimmed = String(base).trim();
+  if (!trimmed) return "";
+  return trimmed.endsWith('/') ? trimmed.slice(0, -1) : trimmed;
+}
+
+const configuredApiBase = normalizeApiBase(import.meta.env.VITE_API_BASE);
+const configuredApiUrl = normalizeApiBase(import.meta.env.VITE_API_URL);
+
+const API_BASE = configuredApiBase || (configuredApiUrl ? `${configuredApiUrl}/api` : "http://localhost:5050/api");
 
 // Configuración de Axios
 export const api = axios.create({
