@@ -1,5 +1,5 @@
 import express from 'express';
-import { getOrCreateChat, getChatHistory, sendMessage, uploadImage } from '../controllers/chat.controller.js';
+import { getOrCreateChat, getChatHistory, sendMessage, uploadImage, markAsRead } from '../controllers/chat.controller.js';
 import { verifyToken as protect } from '../middlewares/auth.middleware.js';
 import { upload } from '../middlewares/upload.js';
 
@@ -9,5 +9,6 @@ router.post('/init', protect, getOrCreateChat);
 router.get('/:chatId/messages', protect, getChatHistory);
 router.post('/message', protect, sendMessage);
 router.post('/upload', protect, upload.single('image'), uploadImage);
+router.put('/:chatId/read', protect, markAsRead);
 
 export default router;

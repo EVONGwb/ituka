@@ -180,8 +180,8 @@ export const forgotPassword = async (req, res) => {
 
     await user.save({ validateBeforeSave: false });
 
-    // En producción usar variable de entorno, fallback a localhost
-    const frontendUrl = process.env.CORS_ORIGINS?.[0] || 'http://localhost:5173';
+    // En producción usar el primer origin permitido (URL del frontend), fallback a localhost
+    const frontendUrl = env.CORS_ORIGINS.length ? env.CORS_ORIGINS[0] : 'http://localhost:5173';
     const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
 
     const message = `Has solicitado resetear tu contraseña. Por favor ve a este link para crear una nueva contraseña: \n\n ${resetUrl}`;

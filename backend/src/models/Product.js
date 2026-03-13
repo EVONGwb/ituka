@@ -13,6 +13,7 @@ const productSchema = new mongoose.Schema({
   usageMode: { type: String },
   skinTypes: [{ type: String, index: true }], // e.g., ['Seca', 'Grasa', 'Mixta', 'Sensible', 'Todo tipo']
   isActive: { type: Boolean, default: true },
+  isFeatured: { type: Boolean, default: false },
   stock: { type: Number, default: 0 }
 }, {
   timestamps: true

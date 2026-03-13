@@ -56,6 +56,7 @@ export const sendMessage = async (req, res) => {
 
     await Chat.findByIdAndUpdate(chatId, { 
         lastMessage: newMessage._id,
+        $inc: { unreadCount: 1 },
         updatedAt: Date.now() 
     });
 
@@ -64,6 +65,16 @@ export const sendMessage = async (req, res) => {
     io.to(chatId).emit('receive_message', newMessage);
 
     res.status(201).json(newMessage);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const markAsRead = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    await Chat.findByIdAndUpdate(chatId, { unreadCount: 0 });
+    res.status(200).json({ message: 'Chat marked as read' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

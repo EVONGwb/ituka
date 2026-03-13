@@ -28,6 +28,10 @@ import { initSocket } from './src/sockets/socket.js';
 const app = express();
 const server = http.createServer(app);
 
+if (env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Servir archivos estáticos (imágenes de chat)
 const uploadDir = path.join(process.cwd(), 'public/uploads');
 app.use('/uploads', express.static(uploadDir));

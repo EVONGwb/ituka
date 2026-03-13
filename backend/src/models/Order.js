@@ -9,6 +9,8 @@ const orderSchema = new mongoose.Schema({
   }],
   total: { type: Number, required: true },
   note: { type: String },
+  paymentMethod: { type: String, enum: ['efectivo', 'transferencia', 'tarjeta', 'pendiente'], default: 'pendiente' },
+  deliveryMethod: { type: String, enum: ['envio', 'recogida', 'pendiente'], default: 'pendiente' },
   status: { 
     type: String, 
     enum: [

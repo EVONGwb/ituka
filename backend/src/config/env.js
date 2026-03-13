@@ -14,6 +14,7 @@ export const env = {
   RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
   RATE_LIMIT_MAX: parseInt(process.env.RATE_LIMIT_MAX) || 100,
   JWT_SECRET: process.env.JWT_SECRET || 'secret',
+  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '30d',
   // Email Configuration
   SMTP_HOST: process.env.SMTP_HOST || 'smtp.gmail.com',
   SMTP_PORT: parseInt(process.env.SMTP_PORT) || 587,

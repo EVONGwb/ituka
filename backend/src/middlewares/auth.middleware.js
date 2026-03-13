@@ -9,12 +9,18 @@ export const verifyToken = (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, env.JWT_SECRET);
     
-    req.user = decoded;
-    next();
+    try {
+        const decoded = jwt.verify(token, env.JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch (jwtError) {
+        console.error('❌ Auth Middleware: JWT Verify Error:', jwtError.message);
+        return res.status(401).json({ message: 'Token inválido o expirado.' });
+    }
   } catch (error) {
-    return res.status(401).json({ message: 'Token inválido o expirado.' });
+    console.error('❌ Auth Middleware: General Error:', error);
+    return res.status(500).json({ message: 'Error interno de autenticación.' });
   }
 };
 
