@@ -12,12 +12,31 @@ export const api = axios.create({
 
 // Interceptor para agregar token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('ituka_token'); // Obtener token directamente de localStorage si no está disponible en auth.js
+  const token = localStorage.getItem('ituka_token') || sessionStorage.getItem('ituka_token'); 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
+
+// Interceptor para manejar errores globales (401)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Solo manejar 401 si NO estamos ya en el login para evitar bucles
+    if (error.response && error.response.status === 401) {
+      const isLoginPage = window.location.pathname.includes('/login');
+      
+      if (!isLoginPage) {
+        // Token expirado o inválido
+        localStorage.removeItem('ituka_token');
+        localStorage.removeItem('ituka_user');
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // --- Productos ---
 

@@ -76,3 +76,20 @@ npm run dev
 - Socket.io
 - Cloudinary (Imágenes)
 - JWT (Autenticación)
+
+## Deploy (Vercel + Render)
+
+### Frontend (Vercel) con GitHub Actions
+
+Este repo incluye un workflow en `.github/workflows/vercel-frontend.yml` que:
+- crea deploy de **preview** en cada PR
+- crea deploy de **producción** en cada push a `main`/`master` (solo si hay cambios en `frontend/`)
+
+Configura estos *Secrets* en GitHub (Settings → Secrets and variables → Actions):
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+
+Los IDs actuales del proyecto (según `.vercel/project.json`) son:
+- `VERCEL_ORG_ID=team_c3HqdYuIn1L12BF2Dy29vAaX`
+- `VERCEL_PROJECT_ID=prj_8bPud6T7fYgY8V2OmzrMMGaRWOcc`

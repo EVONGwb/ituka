@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 export default function WelcomeScreen() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,14 +19,18 @@ export default function WelcomeScreen() {
     setLoading(true);
 
     try {
-      const user = await login(identifier, password);
-      if (user.role === 'admin') {
-        navigate('/admin');
+      const user = await login(identifier, password, rememberMe);
+      if (user) {
+        // Redirección segura basada en rol
+        const redirectPath = user.role === 'admin' ? '/admin' : '/';
+        // Usar replace para evitar volver atrás al login
+        navigate(redirectPath, { replace: true });
       } else {
-        navigate('/');
+        setError('Error desconocido al iniciar sesión');
       }
     } catch (err) {
-      setError(err.message);
+      console.error("Login failed:", err);
+      setError(err.message || 'Error al conectar con el servidor');
     } finally {
       setLoading(false);
     }
@@ -103,20 +108,32 @@ export default function WelcomeScreen() {
               </button>
             </div>
 
+            <div className="flex items-center justify-between mt-2">
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <div className="relative flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="peer h-4 w-4 rounded border-gray-300 text-[#c5a25a] focus:ring-[#c5a25a] cursor-pointer"
+                  />
+                </div>
+                <span className="text-sm text-[#6b7280] group-hover:text-[#4b5563] transition-colors">Recordar sesión</span>
+              </label>
+
+              <Link to="/forgot-password" className="text-sm text-[#c5a25a] font-medium hover:text-[#b08d45] hover:underline underline-offset-4 transition-colors">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl border border-[#c5a25a] bg-[linear-gradient(180deg,#f1d99a_0%,#e0bd6a_100%)] px-4 py-2.5 sm:py-3.5 text-base sm:text-lg font-semibold text-[#2f241b] transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#d9b66b]/45 disabled:cursor-not-allowed disabled:opacity-65"
+              className="w-full rounded-xl border border-[#c5a25a] bg-[linear-gradient(180deg,#f1d99a_0%,#e0bd6a_100%)] px-4 py-2.5 sm:py-3.5 text-base sm:text-lg font-semibold text-[#2f241b] transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#d9b66b]/45 disabled:cursor-not-allowed disabled:opacity-65 shadow-md shadow-[#d9b66b]/20"
             >
               {loading ? 'Entrando...' : 'Iniciar sesión'}
             </button>
           </form>
-
-          <div className="mt-2 sm:mt-4 text-center">
-            <Link to="/forgot-password" className="text-xs sm:text-sm text-[#4d463f] underline underline-offset-4">
-              ¿Olvidaste tu contraseña?
-            </Link>
-          </div>
 
           <div className="mt-3 sm:mt-6 flex items-center gap-4">
             <div className="h-px flex-1 bg-[#d9cfbe]" />

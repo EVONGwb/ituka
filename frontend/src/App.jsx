@@ -1,11 +1,9 @@
-import { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, Link, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import { getToken } from "./lib/auth";
 import { AuthProvider } from "./context/AuthContext";
 
 // Admin Imports
@@ -20,30 +18,14 @@ import AdminChats from "./pages/admin/Chats";
 import WelcomeScreen from "./pages/WelcomeScreen";
 
 function Home() {
-  const navigate = useNavigate();
-  const [authed, setAuthed] = useState(!!getToken());
-
-  useEffect(() => {
-    setAuthed(!!getToken());
-  }, []);
-
-  function onAuthed() {
-    setAuthed(true);
-  }
-
-  function onLogout() {
-    setAuthed(false);
-    navigate("/login");
-  }
-
   return (
     <Routes>
       <Route path="/" element={<WelcomeScreen />} />
-      <Route path="/login" element={<Login onAuthed={onAuthed} />} />
+      <Route path="/login" element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password/:token" element={<ResetPassword />} />
-      <Route path="/register" element={<Register onAuthed={onAuthed} />} />
-      <Route path="/dashboard" element={<Dashboard onLogout={onLogout} />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/dashboard" element={<Dashboard />} />
 
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminLayout />}>

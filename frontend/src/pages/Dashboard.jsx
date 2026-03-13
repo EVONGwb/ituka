@@ -1,26 +1,7 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getToken, clearToken } from "../lib/auth";
 import { ArrowRight, Star } from "lucide-react";
-import { apiFetch } from "../lib/api";
 
-export default function Dashboard({ onLogout }) {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    // Just a quick check to get user name if available, or we could store in context
-    const fetchUser = async () => {
-        try {
-            const token = getToken();
-            if(token) {
-                const res = await apiFetch('/auth/me', { token });
-                setUser(res.data);
-            }
-        } catch(e) { console.error(e) }
-    }
-    fetchUser();
-  }, []);
-
+export default function Dashboard() {
   return (
     <div className="font-sans text-[#3E2723]">
       {/* Hero Section */}

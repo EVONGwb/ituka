@@ -17,8 +17,9 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initAuth = async () => {
-      const storedToken = localStorage.getItem('ituka_token');
-      const storedUser = localStorage.getItem('ituka_user');
+      // Intentar leer de localStorage primero, luego sessionStorage
+      const storedToken = localStorage.getItem('ituka_token') || sessionStorage.getItem('ituka_token');
+      const storedUser = localStorage.getItem('ituka_user') || sessionStorage.getItem('ituka_user');
 
       if (storedToken && storedUser) {
         setUser(JSON.parse(storedUser));
@@ -26,11 +27,18 @@ export const AuthProvider = ({ children }) => {
         try {
            const data = await apiFetch('/auth/me', { token: storedToken });
            setUser(data);
-           localStorage.setItem('ituka_user', JSON.stringify(data));
+           // Actualizar en el storage correspondiente
+           if (localStorage.getItem('ituka_token')) {
+             localStorage.setItem('ituka_user', JSON.stringify(data));
+           } else {
+             sessionStorage.setItem('ituka_user', JSON.stringify(data));
+           }
         } catch (error) {
            console.error("Token inválido o expirado", error);
            localStorage.removeItem('ituka_token');
            localStorage.removeItem('ituka_user');
+           sessionStorage.removeItem('ituka_token');
+           sessionStorage.removeItem('ituka_user');
            setUser(null);
         }
       }
@@ -40,93 +48,81 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
-  const login = async (email, password) => {
-    try {
-      const data = await apiFetch('/auth/login', {
-        method: 'POST',
-        body: { email, password }
-      });
+  const login = async (email, password, remember = false) => {
+    const data = await apiFetch('/auth/login', {
+      method: 'POST',
+      body: { email, password }
+    });
 
-      localStorage.setItem('ituka_token', data.token);
-      localStorage.setItem('ituka_user', JSON.stringify(data.user));
-      setUser(data.user);
-      
-      return data.user;
-    } catch (error) {
-      throw error;
+    const storage = remember ? localStorage : sessionStorage;
+
+    if (remember) {
+      sessionStorage.removeItem('ituka_token');
+      sessionStorage.removeItem('ituka_user');
+    } else {
+      localStorage.removeItem('ituka_token');
+      localStorage.removeItem('ituka_user');
     }
+
+    storage.setItem('ituka_token', data.token);
+    storage.setItem('ituka_user', JSON.stringify(data.user));
+    setUser(data.user);
+    
+    return data.user;
   };
 
   const register = async (userData) => {
-    try {
-      const data = await apiFetch('/auth/register', {
-        method: 'POST',
-        body: userData
-      });
+    const data = await apiFetch('/auth/register', {
+      method: 'POST',
+      body: userData
+    });
 
-      localStorage.setItem('ituka_token', data.token);
-      localStorage.setItem('ituka_user', JSON.stringify(data.user));
-      setUser(data.user);
+    localStorage.setItem('ituka_token', data.token);
+    localStorage.setItem('ituka_user', JSON.stringify(data.user));
+    setUser(data.user);
 
-      return data.user;
-    } catch (error) {
-      throw error;
-    }
+    return data.user;
   };
 
   const updateProfile = async (profileData) => {
-    try {
-      const token = localStorage.getItem('ituka_token');
-      const data = await apiFetch('/auth/profile', {
-        method: 'PUT',
-        token,
-        body: profileData
-      });
+    const token = localStorage.getItem('ituka_token');
+    const data = await apiFetch('/auth/profile', {
+      method: 'PUT',
+      token,
+      body: profileData
+    });
 
-      // Update local storage with new user data
-      // Note: The backend returns { ...user, token: ... }
-      if (data.token) {
-        localStorage.setItem('ituka_token', data.token);
-      }
-      
-      // Remove token from user object before saving to state/storage if backend includes it in user object
-      const { token: newToken, ...userWithoutToken } = data;
-      
-      localStorage.setItem('ituka_user', JSON.stringify(userWithoutToken));
-      setUser(userWithoutToken);
-
-      return userWithoutToken;
-    } catch (error) {
-      throw error;
+    if (data.token) {
+      localStorage.setItem('ituka_token', data.token);
     }
+
+    const { token: _token, ...userWithoutToken } = data;
+    localStorage.setItem('ituka_user', JSON.stringify(userWithoutToken));
+    setUser(userWithoutToken);
+
+    return userWithoutToken;
   };
 
   const forgotPassword = async (email) => {
-    try {
-      await apiFetch('/auth/forgot-password', {
-        method: 'POST',
-        body: { email }
-      });
-    } catch (error) {
-      throw error;
-    }
+    await apiFetch('/auth/forgot-password', {
+      method: 'POST',
+      body: { email }
+    });
   };
 
   const resetPassword = async (token, password) => {
-    try {
-      const data = await apiFetch(`/auth/reset-password/${token}`, {
-        method: 'POST',
-        body: { password }
-      });
-      return data;
-    } catch (error) {
-      throw error;
-    }
+    const data = await apiFetch(`/auth/reset-password/${token}`, {
+      method: 'POST',
+      body: { password }
+    });
+    return data;
   };
 
   const logout = () => {
     localStorage.removeItem('ituka_token');
     localStorage.removeItem('ituka_user');
+    sessionStorage.removeItem('ituka_token');
+    sessionStorage.removeItem('ituka_user');
     setUser(null);
   };
 
