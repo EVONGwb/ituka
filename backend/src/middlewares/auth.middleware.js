@@ -12,7 +12,7 @@ export const verifyToken = (req, res, next) => {
     
     try {
         const decoded = jwt.verify(token, env.JWT_SECRET);
-        req.user = decoded;
+        req.user = { ...decoded, _id: decoded.id };
         next();
     } catch (jwtError) {
         console.error('❌ Auth Middleware: JWT Verify Error:', jwtError.message);
