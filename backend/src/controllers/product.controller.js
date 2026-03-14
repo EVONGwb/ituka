@@ -47,6 +47,30 @@ export const getProducts = async (req, res) => {
   }
 };
 
+export const getAdminProducts = async (req, res) => {
+  try {
+    const { category, search, status } = req.query;
+
+    const query = {};
+
+    if (category) {
+      query.category = category;
+    }
+
+    if (status === 'active') query.isActive = true;
+    if (status === 'hidden') query.isActive = false;
+
+    if (search) {
+      query.$text = { $search: search };
+    }
+
+    const products = await Product.find(query).sort({ createdAt: -1 });
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const getProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -71,10 +95,20 @@ export const createProduct = async (req, res) => {
       return res.status(400).json({ message: 'El slug ya existe, por favor elige otro nombre o slug.' });
     }
 
+    const uploadedImages = (req.files || []).map((f) => f?.path).filter(Boolean);
+    const imagesFromBody = Array.isArray(body.images)
+      ? body.images
+      : typeof body.images === 'string'
+        ? [body.images]
+        : typeof body.imageUrl === 'string' && body.imageUrl
+          ? [body.imageUrl]
+          : [];
+
     const product = new Product({
       name,
       slug: productSlug,
-      ...body
+      ...body,
+      images: uploadedImages.length ? uploadedImages : imagesFromBody
     });
 
     const savedProduct = await product.save();
@@ -97,11 +131,19 @@ export const updateProduct = async (req, res) => {
       body.slug = slug;
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id,
-      body,
-      { new: true }
-    );
+    const uploadedImages = (req.files || []).map((f) => f?.path).filter(Boolean);
+    const imagesFromBody = Array.isArray(body.images)
+      ? body.images
+      : typeof body.images === 'string'
+        ? [body.images]
+        : typeof body.imageUrl === 'string' && body.imageUrl
+          ? [body.imageUrl]
+          : undefined;
+
+    if (uploadedImages.length) body.images = uploadedImages;
+    if (!uploadedImages.length && imagesFromBody) body.images = imagesFromBody;
+
+    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, body, { new: true });
 
     if (!updatedProduct) {
       return res.status(404).json({ message: 'Producto no encontrado' });
