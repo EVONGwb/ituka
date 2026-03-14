@@ -8,10 +8,15 @@ const seedAdmin = async () => {
     await connectDB(env.MONGODB_URI);
     console.log('📦 Conectado a MongoDB para seeding...');
 
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword) {
+      throw new Error('Falta ADMIN_PASSWORD en variables de entorno');
+    }
+
     const adminData = {
       name: 'ituka',
       email: 'directora@ituka.com',
-      password: 'Ituka12345',
+      password: adminPassword,
       role: 'admin'
     };
 
@@ -19,7 +24,12 @@ const seedAdmin = async () => {
     const existingAdmin = await User.findOne({ email: adminData.email });
     
     if (existingAdmin) {
-      console.log('⚠️ El usuario admin ya existe.');
+      existingAdmin.password = adminPassword;
+      existingAdmin.role = 'admin';
+      await existingAdmin.save();
+      console.log('✅ Usuario Admin actualizado exitosamente:');
+      console.log(`   Email: ${adminData.email}`);
+      console.log(`   Role: admin`);
     } else {
       // Al crear el usuario, el middleware pre-save del modelo se encargará de hashear el password
       await User.create(adminData);
