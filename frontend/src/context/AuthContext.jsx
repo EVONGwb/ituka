@@ -35,11 +35,13 @@ export const AuthProvider = ({ children }) => {
            }
         } catch (error) {
            console.error("Token inválido o expirado", error);
-           localStorage.removeItem('ituka_token');
-           localStorage.removeItem('ituka_user');
-           sessionStorage.removeItem('ituka_token');
-           sessionStorage.removeItem('ituka_user');
-           setUser(null);
+           if (error?.status === 401) {
+             localStorage.removeItem('ituka_token');
+             localStorage.removeItem('ituka_user');
+             sessionStorage.removeItem('ituka_token');
+             sessionStorage.removeItem('ituka_user');
+             setUser(null);
+           }
         }
       }
       setLoading(false);
@@ -85,7 +87,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateProfile = async (profileData) => {
-    const token = localStorage.getItem('ituka_token');
+    const token = localStorage.getItem('ituka_token') || sessionStorage.getItem('ituka_token');
+    const storage = localStorage.getItem('ituka_token') ? localStorage : sessionStorage;
     const data = await apiFetch('/auth/profile', {
       method: 'PUT',
       token,
@@ -93,11 +96,11 @@ export const AuthProvider = ({ children }) => {
     });
 
     if (data.token) {
-      localStorage.setItem('ituka_token', data.token);
+      storage.setItem('ituka_token', data.token);
     }
 
     const { token: _token, ...userWithoutToken } = data;
-    localStorage.setItem('ituka_user', JSON.stringify(userWithoutToken));
+    storage.setItem('ituka_user', JSON.stringify(userWithoutToken));
     setUser(userWithoutToken);
 
     return userWithoutToken;
@@ -139,7 +142,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

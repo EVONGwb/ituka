@@ -4,7 +4,6 @@ import { socket } from '../services/socket';
 import { api } from '../lib/api';
 import { getToken } from '../lib/auth';
 import { Send, Paperclip, Image as ImageIcon } from 'lucide-react';
-import './Chat.css';
 
 export default function Chat() {
   const [messages, setMessages] = useState([]);

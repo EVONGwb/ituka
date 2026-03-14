@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
-import { Plus, Edit, Trash, X, Eye, EyeOff, Star, Image as ImageIcon } from 'lucide-react';
+import { Plus, Edit, Trash, X, Eye, EyeOff, Star, Image as ImageIcon, Search, Package } from 'lucide-react';
 import { SectionHeader, SearchInput, ActionButton, EmptyState, StatusBadge } from '../../components/admin/ui';
 
 export default function AdminProducts() {
@@ -11,6 +11,7 @@ export default function AdminProducts() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -19,6 +20,8 @@ export default function AdminProducts() {
     category: '',
     stock: 0,
     imageUrl: '',
+    ingredients: '',
+    benefits: '',
     isActive: true,
     isFeatured: false
   });
@@ -29,8 +32,8 @@ export default function AdminProducts() {
 
   const fetchProducts = async () => {
     try {
-      const { data } = await api.get('/products');
-      setProducts(data);
+      const { data } = await api.get('/products/admin');
+      setProducts(Array.isArray(data) ? data : (data?.products || []));
     } catch (error) {
       console.error(error);
     } finally {
@@ -41,10 +44,33 @@ export default function AdminProducts() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = new FormData();
+      payload.append('name', formData.name);
+      payload.append('description', formData.description);
+      payload.append('category', formData.category);
+      payload.append('ingredients', formData.ingredients || '');
+      payload.append('benefits', formData.benefits || '');
+      payload.append('price', formData.price === '' ? '0' : String(formData.price));
+      payload.append('stock', String(formData.stock || 0));
+      payload.append('isActive', String(!!formData.isActive));
+      payload.append('isFeatured', String(!!formData.isFeatured));
+
+      if (selectedImageFile) {
+        payload.append('images', selectedImageFile);
+      } else if (formData.imageUrl) {
+        payload.append('images', formData.imageUrl);
+      } else if (editingProduct?.images?.length) {
+        editingProduct.images.forEach((u) => payload.append('images', u));
+      }
+
       if (editingProduct) {
-        await api.put(`/products/${editingProduct._id}`, formData);
+        await api.put(`/products/${editingProduct._id}`, payload, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
       } else {
-        await api.post('/products', formData);
+        await api.post('/products', payload, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
       }
       setModalOpen(false);
       fetchProducts();
@@ -92,10 +118,13 @@ export default function AdminProducts() {
       price: product.price,
       category: product.category,
       stock: product.stock,
-      imageUrl: product.imageUrl || '',
+      imageUrl: product.images?.[0] || product.imageUrl || '',
+      ingredients: product.ingredients || '',
+      benefits: product.benefits || '',
       isActive: product.isActive ?? true,
       isFeatured: product.isFeatured ?? false
     });
+    setSelectedImageFile(null);
     setModalOpen(true);
   };
 
@@ -108,17 +137,23 @@ export default function AdminProducts() {
       category: '',
       stock: 0,
       imageUrl: '',
+      ingredients: '',
+      benefits: '',
       isActive: true,
       isFeatured: false
     });
+    setSelectedImageFile(null);
   };
 
-  const categories = [...new Set(products.map(p => p.category))];
+  const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          product.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === 'all' || product.category === filterCategory;
+    const name = String(product.name || '');
+    const category = String(product.category || '');
+    const term = String(searchTerm || '').toLowerCase();
+
+    const matchesSearch = name.toLowerCase().includes(term) || category.toLowerCase().includes(term);
+    const matchesCategory = filterCategory === 'all' || category === filterCategory;
     const matchesStatus = filterStatus === 'all' || 
                           (filterStatus === 'active' && product.isActive) || 
                           (filterStatus === 'hidden' && !product.isActive);
@@ -130,15 +165,15 @@ export default function AdminProducts() {
     <div>
       {/* Nivel 1: Título y Acción Principal */}
       <SectionHeader 
-        title="Catálogo de Productos" 
-        description="Gestiona inventario, visibilidad y destacados"
+        title="Productos" 
+        description="Gestiona inventario, categorías y visibilidad"
         action={
           <ActionButton 
             onClick={() => { resetForm(); setModalOpen(true); }} 
             icon={Plus}
             variant="primary"
           >
-            Añadir Producto
+            Añadir producto
           </ActionButton>
         }
       />
@@ -173,111 +208,118 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      {/* Nivel 3: Tabla Visual */}
       <div className="bg-white rounded-[24px] shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] border border-stone-100 overflow-hidden hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.08)] transition-shadow duration-300">
-        <table className="w-full text-left">
-          <thead className="bg-[#FAFAF9] text-stone-600 font-bold border-b border-stone-100 font-serif">
-            <tr>
-              <th className="p-6 pl-8 w-24">Img</th>
-              <th className="p-6">Producto</th>
-              <th className="p-6">Categoría</th>
-              <th className="p-6">Estado</th>
-              <th className="p-6 text-center">Destacado</th>
-              <th className="p-6">Stock</th>
-              <th className="p-6 text-right pr-8">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-stone-50">
-            {loading && (
-              <tr>
-                <td colSpan="7" className="p-12 text-center text-stone-500">Cargando catálogo...</td>
-              </tr>
-            )}
-            {!loading && filteredProducts.length === 0 && (
-              <tr>
-                <td colSpan="7">
-                  <EmptyState 
-                    icon={Search} 
-                    title="No se encontraron productos" 
-                    description="Intenta ajustar los filtros o crea un nuevo producto."
-                  />
-                </td>
-              </tr>
-            )}
-            {filteredProducts.map(product => (
-              <tr key={product._id} className="hover:bg-[#FAFAF9] transition-colors group">
-                <td className="p-6 pl-8">
-                  <div className="w-16 h-16 rounded-xl bg-stone-50 border border-stone-100 overflow-hidden flex items-center justify-center shadow-sm">
-                    {product.imageUrl ? (
-                      <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+        {loading ? (
+          <div className="p-12 text-center text-stone-500">Cargando catálogo...</div>
+        ) : products.length === 0 ? (
+          <div className="p-6">
+            <EmptyState
+              icon={Package}
+              title="No hay productos publicados."
+              description="Pulsa Añadir producto para crear el primer producto de ITUKA."
+              action={
+                <ActionButton
+                  onClick={() => { resetForm(); setModalOpen(true); }}
+                  icon={Plus}
+                  variant="primary"
+                >
+                  Añadir producto
+                </ActionButton>
+              }
+            />
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="p-6">
+            <EmptyState
+              icon={Search}
+              title="No se encontraron productos"
+              description="Intenta ajustar los filtros o crea un nuevo producto."
+            />
+          </div>
+        ) : (
+          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 bg-[#FAFAF9]">
+            {filteredProducts.map(product => {
+              const category = String(product.category || '');
+              const name = String(product.name || 'Producto');
+              const statusText = product.isActive ? 'Activo' : 'Oculto';
+
+              return (
+                <div
+                  key={product._id}
+                  className="bg-white rounded-[24px] border border-stone-200 shadow-sm hover:shadow-[0_10px_30px_-12px_rgba(0,0,0,0.15)] transition-all overflow-hidden group"
+                >
+                  <div className="relative h-44 bg-stone-50 border-b border-stone-100 overflow-hidden">
+                    {product.images?.[0] ? (
+                      <img src={product.images[0]} alt={name} className="w-full h-full object-cover" />
                     ) : (
-                      <ImageIcon className="w-6 h-6 text-stone-300" />
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ImageIcon className="w-10 h-10 text-stone-300" />
+                      </div>
                     )}
+
+                    <div className="absolute top-3 right-3 flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => openEdit(product)}
+                        className="p-2 bg-white/95 border border-stone-200 text-stone-500 hover:text-ituka-green hover:border-ituka-green/30 rounded-xl shadow-sm transition-colors"
+                        title="Editar producto"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => toggleStatus(product)}
+                        className="p-2 bg-white/95 border border-stone-200 text-stone-500 hover:text-stone-700 rounded-xl shadow-sm transition-colors"
+                        title={product.isActive ? 'Ocultar producto' : 'Activar producto'}
+                      >
+                        {product.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                      <button
+                        onClick={() => toggleFeatured(product)}
+                        className={`p-2 bg-white/95 border border-stone-200 rounded-xl shadow-sm transition-colors ${
+                          product.isFeatured ? 'text-ituka-gold border-ituka-gold/30' : 'text-stone-400 hover:text-stone-600'
+                        }`}
+                        title={product.isFeatured ? 'Quitar destacado' : 'Destacar producto'}
+                      >
+                        <Star className={`w-4 h-4 ${product.isFeatured ? 'fill-current' : ''}`} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(product._id)}
+                        className="p-2 bg-white/95 border border-stone-200 text-stone-400 hover:text-red-600 hover:border-red-200 rounded-xl shadow-sm transition-colors"
+                        title="Eliminar producto"
+                      >
+                        <Trash className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                </td>
-                <td className="p-6">
-                  <div className="font-bold text-ituka-text text-lg">{product.name}</div>
-                  <div className="text-stone-500 text-sm font-semibold mt-1">${product.price}</div>
-                </td>
-                <td className="p-6">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-stone-50 text-stone-600 border border-stone-100 uppercase tracking-wide">
-                    {product.category}
-                  </span>
-                </td>
-                <td className="p-6">
-                  <button 
-                    onClick={() => toggleStatus(product)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
-                      product.isActive 
-                        ? 'bg-[#E8F5E9] text-ituka-green border border-green-200 hover:bg-green-100' 
-                        : 'bg-stone-50 text-stone-500 border border-stone-200 hover:bg-stone-100'
-                    }`}
-                  >
-                    {product.isActive ? (
-                      <>
-                        <span className="w-2 h-2 rounded-full bg-ituka-green"></span>
-                        Visible
-                      </>
-                    ) : (
-                      <>
-                        <EyeOff className="w-3.5 h-3.5" />
-                        Oculto
-                      </>
-                    )}
-                  </button>
-                </td>
-                <td className="p-6 text-center">
-                  <button 
-                    onClick={() => toggleFeatured(product)}
-                    className={`p-2.5 rounded-full transition-all duration-300 ${
-                      product.isFeatured 
-                        ? 'text-ituka-gold bg-yellow-50 scale-110' 
-                        : 'text-stone-300 hover:text-stone-400 hover:bg-stone-50'
-                    }`}
-                    title={product.isFeatured ? "Quitar destacado" : "Destacar"}
-                  >
-                    <Star className={`w-6 h-6 ${product.isFeatured ? 'fill-current' : ''}`} />
-                  </button>
-                </td>
-                <td className="p-6">
-                  <span className={`text-sm font-bold ${product.stock < 5 ? 'text-red-500' : 'text-stone-600'}`}>
-                    {product.stock} u.
-                  </span>
-                </td>
-                <td className="p-6 text-right pr-8">
-                  <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openEdit(product)} className="p-2.5 text-stone-400 hover:text-ituka-green hover:bg-[#E8F5E9] rounded-xl transition-colors" title="Editar">
-                      <Edit className="w-5 h-5" />
-                    </button>
-                    <button onClick={() => handleDelete(product._id)} className="p-2.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors" title="Eliminar">
-                      <Trash className="w-5 h-5" />
-                    </button>
+
+                  <div className="p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-ituka-text truncate">{name}</p>
+                        {category && (
+                          <p className="text-xs text-stone-400 font-medium mt-1 truncate">{category}</p>
+                        )}
+                      </div>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wide whitespace-nowrap ${
+                        product.isActive
+                          ? 'bg-[#E8F5E9] text-ituka-green border-green-200'
+                          : 'bg-stone-100 text-stone-500 border-stone-200'
+                      }`}>
+                        {statusText}
+                      </span>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between gap-3">
+                      <p className="text-sm font-bold text-stone-700">${product.price}</p>
+                      <p className={`text-xs font-bold ${Number(product.stock) < 5 ? 'text-red-500' : 'text-stone-500'}`}>
+                        {product.stock} u.
+                      </p>
+                    </div>
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {modalOpen && (
@@ -313,7 +355,6 @@ export default function AdminProducts() {
                     onChange={e => setFormData({...formData, price: e.target.value})}
                     className="w-full px-5 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-ituka-green/20 focus:border-ituka-green outline-none transition-all bg-[#F9F9F7]"
                     placeholder="0.00"
-                    required
                   />
                 </div>
                 <div>
@@ -352,7 +393,38 @@ export default function AdminProducts() {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-stone-700 mb-2">URL Imagen</label>
+                <label className="block text-sm font-bold text-stone-700 mb-2">Ingredientes</label>
+                <textarea
+                  value={formData.ingredients}
+                  onChange={e => setFormData({...formData, ingredients: e.target.value})}
+                  className="w-full px-5 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-ituka-green/20 focus:border-ituka-green outline-none transition-all h-28 resize-none bg-[#F9F9F7]"
+                  placeholder="Ej. Agua, glicerina, aloe vera..."
+                ></textarea>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-stone-700 mb-2">Beneficios</label>
+                <textarea
+                  value={formData.benefits}
+                  onChange={e => setFormData({...formData, benefits: e.target.value})}
+                  className="w-full px-5 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-ituka-green/20 focus:border-ituka-green outline-none transition-all h-28 resize-none bg-[#F9F9F7]"
+                  placeholder="Ej. Hidrata, calma, mejora la textura..."
+                ></textarea>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-stone-700 mb-2">Imagen del producto</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setSelectedImageFile(e.target.files?.[0] || null)}
+                  className="w-full px-5 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-ituka-green/20 focus:border-ituka-green outline-none transition-all bg-[#F9F9F7]"
+                />
+                {selectedImageFile && (
+                  <p className="text-xs text-stone-400 mt-2 truncate">{selectedImageFile.name}</p>
+                )}
+                <div className="mt-3">
+                  <label className="block text-xs font-bold text-stone-500 mb-2">URL de imagen (opcional)</label>
                 <input 
                   type="text" 
                   value={formData.imageUrl}
@@ -360,6 +432,7 @@ export default function AdminProducts() {
                   className="w-full px-5 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-ituka-green/20 focus:border-ituka-green outline-none transition-all bg-[#F9F9F7]"
                   placeholder="https://..."
                 />
+                </div>
               </div>
 
               <div className="flex gap-6 pt-2">

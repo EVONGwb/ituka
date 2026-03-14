@@ -22,7 +22,7 @@ export default function WelcomeScreen() {
       const user = await login(identifier, password, rememberMe);
       if (user) {
         // Redirección segura basada en rol
-        const redirectPath = user.role === 'admin' ? '/admin' : '/';
+        const redirectPath = user.role === 'admin' ? '/admin' : '/dashboard';
         // Usar replace para evitar volver atrás al login
         navigate(redirectPath, { replace: true });
       } else {

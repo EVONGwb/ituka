@@ -35,12 +35,15 @@ api.interceptors.response.use(
   (error) => {
     // Solo manejar 401 si NO estamos ya en el login para evitar bucles
     if (error.response && error.response.status === 401) {
-      const isLoginPage = window.location.pathname.includes('/login');
+      const path = window.location.pathname;
+      const isLoginPage = path === '/' || path.startsWith('/login');
       
       if (!isLoginPage) {
         // Token expirado o inválido
         localStorage.removeItem('ituka_token');
         localStorage.removeItem('ituka_user');
+        sessionStorage.removeItem('ituka_token');
+        sessionStorage.removeItem('ituka_user');
         window.location.href = '/login';
       }
     }
@@ -76,6 +79,63 @@ export const deleteProduct = async (id) => {
   return response.data;
 };
 
+export const addToCart = async (token, productId, quantity = 1) => {
+  const response = await api.post(
+    '/cart/add',
+    { productId, quantity },
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  return response.data;
+};
+
+export const getCart = async (token) => {
+  const response = await api.get('/cart', token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  return response.data;
+};
+
+export const updateCartItem = async (token, productId, quantity) => {
+  const response = await api.put(
+    `/cart/item/${productId}`,
+    { quantity },
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  return response.data;
+};
+
+export const removeCartItem = async (token, productId) => {
+  const response = await api.delete(
+    `/cart/item/${productId}`,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  return response.data;
+};
+
+export const updateCartNote = async (token, note) => {
+  const response = await api.put(
+    '/cart/note',
+    { note },
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  return response.data;
+};
+
+export const createRequest = async (token, note) => {
+  const response = await api.post(
+    '/requests',
+    { note },
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  return response.data;
+};
+
+export const getMyRequests = async (token) => {
+  const response = await api.get(
+    '/requests/my',
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  return response.data;
+};
+
 // --- Funciones Legacy (fetch) ---
 // Manteniendo compatibilidad si es necesario, pero prefiriendo axios arriba
 export async function apiFetch(path, { token, method = "GET", body } = {}) {
@@ -101,7 +161,9 @@ export async function apiFetch(path, { token, method = "GET", body } = {}) {
     if (error.response) {
       // Intentamos obtener el mensaje de error del backend
       const message = error.response.data?.message || error.response.data?.error || 'Error en la petición';
-      throw new Error(message);
+      const err = new Error(message);
+      err.status = error.response.status;
+      throw err;
     }
     // Si no, relanzamos el error original
     throw error;
