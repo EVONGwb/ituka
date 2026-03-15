@@ -44,40 +44,47 @@ export default function AdminProducts() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = new FormData();
-      payload.append('name', formData.name);
-      payload.append('description', formData.description);
-      payload.append('category', formData.category);
-      payload.append('ingredients', formData.ingredients || '');
-      payload.append('benefits', formData.benefits || '');
-      payload.append('price', formData.price === '' ? '0' : String(formData.price));
-      payload.append('stock', String(formData.stock || 0));
-      payload.append('isActive', String(!!formData.isActive));
-      payload.append('isFeatured', String(!!formData.isFeatured));
+      const basePayload = {
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        ingredients: formData.ingredients || '',
+        benefits: formData.benefits || '',
+        price: formData.price === '' ? 0 : Number(formData.price),
+        stock: Number(formData.stock || 0),
+        isActive: !!formData.isActive,
+        isFeatured: !!formData.isFeatured
+      };
 
       if (selectedImageFile) {
+        const payload = new FormData();
+        Object.entries(basePayload).forEach(([k, v]) => payload.append(k, String(v)));
         payload.append('images', selectedImageFile);
-      } else if (formData.imageUrl) {
-        payload.append('images', formData.imageUrl);
-      } else if (editingProduct?.images?.length) {
-        editingProduct.images.forEach((u) => payload.append('images', u));
-      }
 
-      if (editingProduct) {
-        await api.put(`/products/${editingProduct._id}`, payload, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        if (editingProduct) {
+          await api.put(`/products/${editingProduct._id}`, payload);
+        } else {
+          await api.post('/products', payload);
+        }
       } else {
-        await api.post('/products', payload, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        const payload = {
+          ...basePayload,
+          ...(formData.imageUrl ? { imageUrl: formData.imageUrl } : {})
+        };
+
+        if (editingProduct) {
+          await api.put(`/products/${editingProduct._id}`, payload);
+        } else {
+          await api.post('/products', payload);
+        }
       }
       setModalOpen(false);
       fetchProducts();
       resetForm();
     } catch (error) {
       console.error(error);
-      alert('Error al guardar producto');
+      const message = error?.response?.data?.message || error?.message || 'Error al guardar producto';
+      alert(message);
     }
   };
 
