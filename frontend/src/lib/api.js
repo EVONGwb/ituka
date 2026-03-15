@@ -14,10 +14,7 @@ const API_BASE = configuredApiBase || (configuredApiUrl ? `${configuredApiUrl}/a
 
 // Configuración de Axios
 export const api = axios.create({
-  baseURL: API_BASE,
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  baseURL: API_BASE
 });
 
 // Interceptor para agregar token
@@ -26,6 +23,20 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  const isFormData = typeof FormData !== 'undefined' && config.data instanceof FormData;
+  if (isFormData) {
+    if (config.headers) {
+      delete config.headers['Content-Type'];
+      delete config.headers['content-type'];
+    }
+  } else {
+    config.headers = config.headers || {};
+    if (!config.headers['Content-Type'] && !config.headers['content-type']) {
+      config.headers['Content-Type'] = 'application/json';
+    }
+  }
+
   return config;
 });
 
