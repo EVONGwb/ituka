@@ -83,7 +83,11 @@ export default function AdminProducts() {
       resetForm();
     } catch (error) {
       console.error(error);
-      const message = error?.response?.data?.message || error?.message || 'Error al guardar producto';
+      const message =
+        error?.response?.data?.message ||
+        error?.response?.data?.error?.message ||
+        error?.message ||
+        'Error al guardar producto';
       alert(message);
     }
   };

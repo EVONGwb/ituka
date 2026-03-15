@@ -13,7 +13,7 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'ituka_products',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp', 'heic', 'heif', 'avif'],
     transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
   }
 });
