@@ -39,11 +39,15 @@ export const sendEmail = async ({ to, subject, text, html }) => {
       return;
     }
 
+    if (!env.SMTP_USER || !env.SMTP_PASS) {
+      throw new Error('Servicio de email no configurado');
+    }
+
     const info = await transporter.sendMail(mailOptions);
     logger.info(`Email sent: ${info.messageId}`);
     return info;
   } catch (error) {
     logger.error('Error sending email:', error);
-    throw new Error('Email service failed');
+    throw new Error(error?.message || 'Email service failed');
   }
 };

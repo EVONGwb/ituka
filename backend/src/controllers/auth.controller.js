@@ -4,6 +4,16 @@ import { env } from '../config/env.js';
 import crypto from 'crypto';
 import { sendEmail } from '../utils/email.js';
 
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const normalizeIdentifier = (value) => {
+  if (typeof value !== 'string') return '';
+  return value.trim();
+};
+
+const normalizeEmail = (value) => normalizeIdentifier(value).toLowerCase();
+const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
 // Helper to generate token
 const generateToken = (id, role) => {
   return jwt.sign({ id, role }, env.JWT_SECRET, {
@@ -14,10 +24,22 @@ const generateToken = (id, role) => {
 // Login
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, identifier, password } = req.body;
+    const rawIdentifier = email ?? identifier;
+    const normalizedIdentifier = normalizeIdentifier(rawIdentifier);
+    const normalizedEmail = normalizeEmail(rawIdentifier);
 
     // Verificar si el usuario existe
-    const user = await User.findOne({ email });
+    let user = null;
+
+    if (normalizedEmail.includes('@')) {
+      user = await User.findOne({
+        email: { $regex: new RegExp(`^${escapeRegex(normalizedEmail)}$`, 'i') }
+      });
+    } else if (normalizedIdentifier) {
+      user = await User.findOne({ phone: normalizedIdentifier });
+    }
+
     if (!user) {
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
@@ -68,14 +90,21 @@ export const register = async (req, res) => {
       skinNeeds
     } = req.body;
 
-    const existingUser = await User.findOne({ email });
+    const emailNormalized = normalizeEmail(email);
+    if (!emailNormalized) {
+      return res.status(400).json({ message: 'Email requerido' });
+    }
+
+    const existingUser = await User.findOne({
+      email: { $regex: new RegExp(`^${escapeRegex(emailNormalized)}$`, 'i') }
+    });
     if (existingUser) {
       return res.status(400).json({ message: 'El usuario ya existe' });
     }
 
     const newUser = await User.create({ 
       name, 
-      email, 
+      email: emailNormalized, 
       password,
       phone,
       address,
@@ -133,7 +162,9 @@ export const updateProfile = async (req, res) => {
     }
 
     user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
+    if (typeof req.body.email === 'string' && req.body.email.trim()) {
+      user.email = normalizeEmail(req.body.email);
+    }
     user.phone = req.body.phone || user.phone;
     user.skinType = req.body.skinType || user.skinType;
     user.skinNeeds = req.body.skinNeeds || user.skinNeeds;
@@ -169,7 +200,13 @@ export const updateProfile = async (req, res) => {
 // Forgot Password
 export const forgotPassword = async (req, res) => {
   try {
-    const user = await User.findOne({ email: req.body.email });
+    const emailNormalized = normalizeEmail(req.body.email);
+    if (!isValidEmail(emailNormalized)) {
+      return res.status(400).json({ message: 'Email inválido' });
+    }
+    const user = await User.findOne({
+      email: { $regex: new RegExp(`^${escapeRegex(emailNormalized)}$`, 'i') }
+    });
 
     if (!user) {
       return res.status(404).json({ message: 'No existe usuario con ese email' });
@@ -224,7 +261,7 @@ export const forgotPassword = async (req, res) => {
 
       await user.save({ validateBeforeSave: false });
 
-      return res.status(500).json({ message: 'El email no pudo ser enviado' });
+      return res.status(500).json({ message: error?.message || 'El email no pudo ser enviado' });
     }
   } catch (error) {
     console.error('ForgotPassword error:', error);

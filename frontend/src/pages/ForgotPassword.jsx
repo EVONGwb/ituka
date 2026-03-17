@@ -45,7 +45,7 @@ export default function ForgotPassword() {
             />
             <h2 className="text-2xl sm:text-3xl font-serif font-bold text-ituka-ink tracking-wide">Recuperar contraseña</h2>
             <p className="text-ituka-muted mt-3 text-sm leading-relaxed max-w-[280px] mx-auto">
-              Introduce tu email o teléfono y te enviaremos un código para restablecer tu contraseña.
+              Introduce tu email y te enviaremos un enlace para restablecer tu contraseña.
             </p>
           </div>
 
@@ -62,7 +62,7 @@ export default function ForgotPassword() {
               </div>
               <h3 className="text-lg font-semibold text-ituka-ink">¡Código enviado!</h3>
               <p className="text-ituka-muted text-sm">
-                Te hemos enviado un código de verificación a <br/>
+                Te hemos enviado un enlace de restablecimiento a <br/>
                 <span className="font-semibold text-ituka-ink">{email}</span>
               </p>
               <Link 
@@ -75,11 +75,11 @@ export default function ForgotPassword() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-ituka-muted uppercase tracking-wider ml-1">Email o teléfono</label>
+                <label className="text-xs font-semibold text-ituka-muted uppercase tracking-wider ml-1">Email</label>
                 <div className="relative group">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 group-focus-within:text-ituka-gold transition-colors" />
                   <input
-                    type="text"
+                    type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-ituka-border bg-ituka-surface text-ituka-text placeholder:text-stone-400 outline-none transition-all focus:border-ituka-gold focus:ring-4 focus:ring-ituka-gold/10 focus:bg-white"
@@ -104,7 +104,7 @@ export default function ForgotPassword() {
                   </span>
                 ) : (
                   <>
-                    Enviar código
+                    Enviar enlace
                     <ArrowRight className="w-5 h-5 opacity-80" />
                   </>
                 )}

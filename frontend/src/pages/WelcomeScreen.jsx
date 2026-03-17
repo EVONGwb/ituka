@@ -26,7 +26,7 @@ export default function WelcomeScreen() {
     setLoading(true);
 
     try {
-      const user = await login(identifier, password, rememberMe);
+      const user = await login(identifier.trim(), password, rememberMe);
       if (user) {
         // Redirección segura basada en rol
         const redirectPath = user.role !== 'customer' ? '/admin' : '/dashboard';
@@ -83,7 +83,7 @@ export default function WelcomeScreen() {
                 name="identifier"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="Correo electrónico o teléfono"
+                placeholder="Correo electrónico"
                 className="w-full rounded-xl border border-ituka-border bg-ituka-surface px-4 py-2.5 sm:py-3 pl-10 sm:pl-12 text-sm sm:text-[16px] text-ituka-text placeholder:text-stone-500 outline-none transition focus:border-ituka-gold focus:ring-4 focus:ring-ituka-gold/25"
                 autoComplete="username"
                 inputMode="email"

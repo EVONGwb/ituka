@@ -95,11 +95,11 @@ export default function Register() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-ituka-muted uppercase tracking-wider ml-1">Email o teléfono</label>
+              <label className="text-xs font-semibold text-ituka-muted uppercase tracking-wider ml-1">Email</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 group-focus-within:text-ituka-gold transition-colors" />
                 <input
-                  type="text"
+                  type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
