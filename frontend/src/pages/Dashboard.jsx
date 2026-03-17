@@ -1,119 +1,321 @@
-import { Link } from "react-router-dom";
-import { ArrowRight, Star } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Bell, MessageSquare, ShoppingBag, ClipboardList, ArrowRight, Package, Clock3 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { api } from "../lib/api";
+import { getToken } from "../lib/auth";
+
+function statusLabel(status) {
+  const s = String(status || "").trim();
+  if (!s) return "Actualización";
+  return s.replaceAll("_", " ");
+}
+
+function formatRelative(date) {
+  const d = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(d.getTime())) return "";
+  const diffMs = Date.now() - d.getTime();
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return "ahora";
+  if (min < 60) return `hace ${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `hace ${h} h`;
+  const days = Math.floor(h / 24);
+  return `hace ${days} d`;
+}
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const name = (user?.name || "").trim();
+  const firstName = name ? name.split(/\s+/)[0] : "Prudencio";
+  const [loading, setLoading] = useState(true);
+  const [cartCount, setCartCount] = useState(0);
+  const [pendingRequests, setPendingRequests] = useState(0);
+  const [requests, setRequests] = useState([]);
+  const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    if (!getToken()) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    let mounted = true;
+    const load = async () => {
+      setLoading(true);
+      try {
+        const [cartRes, requestsRes, ordersRes] = await Promise.all([
+          api.get("/cart"),
+          api.get("/requests/my"),
+          api.get("/orders/myorders")
+        ]);
+
+        const cartItems = Array.isArray(cartRes.data?.items) ? cartRes.data.items : [];
+        const nextCartCount = cartItems.reduce((sum, i) => sum + Number(i?.quantity || 0), 0);
+
+        const reqs = Array.isArray(requestsRes.data) ? requestsRes.data : [];
+        const pending = reqs.filter((r) => !["entregado", "cancelado"].includes(r?.status)).length;
+
+        const ords = Array.isArray(ordersRes.data) ? ordersRes.data : [];
+
+        if (mounted) {
+          setCartCount(nextCartCount);
+          setPendingRequests(pending);
+          setRequests(reqs);
+          setOrders(ords);
+        }
+      } catch (e) {
+        if (mounted) {
+          setCartCount(0);
+          setPendingRequests(0);
+          setRequests([]);
+          setOrders([]);
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [navigate]);
+
+  const greetingName = useMemo(() => firstName.charAt(0).toUpperCase() + firstName.slice(1), [firstName]);
+
+  const latestRequest = useMemo(() => {
+    const list = Array.isArray(requests) ? requests : [];
+    return [...list].sort((a, b) => new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0))[0] || null;
+  }, [requests]);
+
+  const activeChats = useMemo(() => {
+    const items = [];
+    if (latestRequest?._id) {
+      items.push({
+        title: `Solicitud #${String(latestRequest._id).slice(-6).toUpperCase()}`,
+        subtitle: statusLabel(latestRequest.status),
+        onOpen: () => navigate("/chat", { state: { requestId: latestRequest._id } })
+      });
+    }
+    items.push({
+      title: "Soporte ITUKA",
+      subtitle: "Consulta rápida",
+      onOpen: () => navigate("/chat")
+    });
+    return items;
+  }, [latestRequest, navigate]);
+
+  const ordersInProgress = useMemo(() => {
+    const ords = Array.isArray(orders) ? orders : [];
+    const orderStatuses = new Set(["confirmado", "pagado", "en_preparacion", "enviado", "listo_para_recoger"]);
+    return ords.filter((o) => orderStatuses.has(o?.status)).length;
+  }, [orders]);
+
+  const recentActivity = useMemo(() => {
+    const list = [];
+    for (const r of (Array.isArray(requests) ? requests : []).slice(0, 10)) {
+      list.push({
+        id: `r:${r?._id}`,
+        type: "request",
+        title: `Solicitud #${String(r?._id || "").slice(-6).toUpperCase()}`,
+        subtitle: statusLabel(r?.status),
+        date: r?.createdAt,
+        onOpen: () => navigate("/chat", { state: { requestId: r?._id } })
+      });
+    }
+    for (const o of (Array.isArray(orders) ? orders : []).slice(0, 10)) {
+      list.push({
+        id: `o:${o?._id}`,
+        type: "order",
+        title: `Pedido #${String(o?._id || "").slice(-6).toUpperCase()}`,
+        subtitle: statusLabel(o?.status),
+        date: o?.createdAt,
+        onOpen: () => navigate("/requests")
+      });
+    }
+    return list
+      .filter((i) => i.date)
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 6);
+  }, [orders, requests, navigate]);
+
   return (
-    <div className="font-sans text-ituka-ink">
-      {/* Hero Section */}
-      <section className="relative h-[80vh] bg-ituka-cream-deep flex items-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-           {/* Background Image Placeholder - In real app, this would be a high quality image */}
-           <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-multiply"></div>
-           <div className="absolute inset-0 bg-gradient-to-r from-ituka-cream via-ituka-cream/60 to-transparent"></div>
-        </div>
-        
-        <div className="relative z-10 max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
-          <div>
-            <span className="inline-block py-1 px-3 border border-ituka-green rounded-full text-ituka-green text-xs font-bold uppercase tracking-widest mb-6">
-              Nueva Colección 2026
-            </span>
-            <h1 className="text-5xl md:text-7xl font-serif font-bold text-ituka-ink leading-tight mb-6">
-              La naturaleza <br/> <span className="text-ituka-green italic">renace</span> en tu piel.
-            </h1>
-            <p className="text-lg text-ituka-ink-muted mb-10 max-w-md leading-relaxed">
-              Descubre el poder de los ingredientes botánicos africanos en nuestra nueva línea de cuidado facial regenerativo.
+    <div className="min-h-screen bg-ituka-cream-soft font-sans px-6 py-8">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-start justify-between gap-6">
+          <div className="min-w-0">
+            <p className="text-ituka-ink text-3xl sm:text-4xl font-serif font-bold tracking-tight">
+              Hola, {greetingName}
             </p>
-            <div className="flex gap-4">
-              <Link 
-                to="/products" 
-                className="px-8 py-4 bg-ituka-gold text-white rounded-full font-medium hover:bg-ituka-gold/90 transition-colors shadow-lg shadow-ituka-gold/20"
-              >
-                Ver Productos
-              </Link>
-              <Link 
-                to="/about" 
-                className="px-8 py-4 bg-transparent border border-ituka-ink text-ituka-ink rounded-full font-medium hover:bg-ituka-ink hover:text-white transition-colors"
-              >
-                Nuestra Historia
-              </Link>
+            <p className="text-ituka-ink-muted mt-2 text-base sm:text-lg">
+              Cuida tu piel de forma natural
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className="w-11 h-11 rounded-2xl bg-white border border-ituka-border shadow-sm flex items-center justify-center hover:bg-ituka-cream transition-colors flex-shrink-0"
+            aria-label="Notificaciones"
+          >
+            <Bell className="w-5 h-5 text-ituka-ink" />
+          </button>
+        </div>
+
+        <div className="mt-10 ituka-card p-6">
+          <p className="text-xs font-bold text-ituka-ink/50 uppercase tracking-widest">ITUKA</p>
+          <p className="mt-2 text-ituka-ink text-lg font-serif font-bold leading-snug">
+            Una rutina simple. Ingredientes reales. Resultados que se sienten.
+          </p>
+          <p className="mt-3 text-ituka-ink-muted text-sm leading-relaxed">
+            Explora productos, arma tu cesta y envía tu solicitud cuando estés listo.
+          </p>
+        </div>
+
+        <div className="mt-8 space-y-5">
+          <div className="bg-white rounded-[28px] border border-ituka-border shadow-ituka-card p-6 flex items-start gap-5">
+            <div className="w-1.5 self-stretch rounded-full bg-ituka-gold/70" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-ituka-cream-soft border border-ituka-border flex items-center justify-center">
+                    <ClipboardList className="w-5 h-5 text-ituka-ink" />
+                  </div>
+                  <div>
+                    <p className="text-ituka-ink font-serif font-bold text-xl leading-tight">Solicitudes</p>
+                    <p className="text-ituka-ink-muted text-sm font-medium mt-1">
+                      {loading ? "Cargando..." : `${pendingRequests} pendientes`}
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  to="/requests"
+                  className="text-sm font-bold text-ituka-ink/70 hover:text-ituka-ink transition-colors inline-flex items-center gap-2 flex-shrink-0 mt-1"
+                >
+                  Ver solicitudes <ArrowRight className="w-4 h-4 text-ituka-gold" />
+                </Link>
+              </div>
+
+              <div className="mt-4 flex items-center justify-between gap-4 bg-ituka-cream-soft border border-ituka-border rounded-2xl px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4 text-ituka-gold" />
+                  <p className="text-sm font-bold text-ituka-ink">
+                    Tu cesta: {loading ? "…" : `${cartCount} producto${cartCount === 1 ? "" : "s"}`}
+                  </p>
+                </div>
+                  <Link to="/cart" className="text-sm font-bold text-ituka-ink/70 hover:text-ituka-ink transition-colors inline-flex items-center gap-2">
+                  Ver cesta <ArrowRight className="w-4 h-4 text-ituka-gold" />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-[28px] border border-ituka-border shadow-ituka-card p-6 flex items-start gap-5">
+            <div className="w-1.5 self-stretch rounded-full bg-ituka-gold/70" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-ituka-cream-soft border border-ituka-border flex items-center justify-center">
+                    <MessageSquare className="w-5 h-5 text-ituka-ink" />
+                  </div>
+                  <div>
+                    <p className="text-ituka-ink font-serif font-bold text-lg leading-tight">Chats activos</p>
+                    <p className="text-ituka-ink-muted text-sm font-medium">Responde rápido y sigue el hilo</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {activeChats.map((c) => (
+                  <button
+                    key={c.title}
+                    type="button"
+                    onClick={c.onOpen}
+                    className="w-full text-left bg-ituka-cream-soft border border-ituka-border rounded-2xl px-4 py-4 hover:bg-ituka-cream transition-colors"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="text-ituka-ink font-serif font-bold truncate">{c.title}</p>
+                        <p className="text-ituka-ink-muted text-sm font-medium mt-1 truncate">{c.subtitle}</p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-ituka-gold flex-shrink-0" />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-[28px] border border-ituka-border shadow-ituka-card p-6 flex items-start gap-5">
+            <div className="w-1.5 self-stretch rounded-full bg-ituka-gold/70" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-ituka-cream-soft border border-ituka-border flex items-center justify-center">
+                    <Package className="w-5 h-5 text-ituka-ink" />
+                  </div>
+                  <div>
+                    <p className="text-ituka-ink font-serif font-bold text-lg leading-tight">Pedidos</p>
+                    <p className="text-ituka-ink-muted text-sm font-medium mt-1">
+                      {loading ? "Cargando..." : `${ordersInProgress} en curso`}
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  to="/requests"
+                  className="text-sm font-bold text-ituka-ink/70 hover:text-ituka-ink transition-colors inline-flex items-center gap-2 flex-shrink-0 mt-1"
+                >
+                  Ver pedidos <ArrowRight className="w-4 h-4 text-ituka-gold" />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-[28px] border border-ituka-border shadow-ituka-card p-6 flex items-start gap-5">
+            <div className="w-1.5 self-stretch rounded-full bg-ituka-gold/70" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-ituka-cream-soft border border-ituka-border flex items-center justify-center">
+                  <Clock3 className="w-5 h-5 text-ituka-ink" />
+                </div>
+                <div>
+                  <p className="text-ituka-ink font-serif font-bold text-lg leading-tight">Actividad reciente</p>
+                  <p className="text-ituka-ink-muted text-sm font-medium">Lo último que pasó en tu cuenta</p>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {recentActivity.length === 0 ? (
+                  <div className="bg-ituka-cream-soft border border-ituka-border rounded-2xl px-4 py-4 text-ituka-ink-muted text-sm font-medium">
+                    {loading ? "Cargando..." : "Aún no hay actividad para mostrar."}
+                  </div>
+                ) : (
+                  recentActivity.map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={a.onOpen}
+                      className="w-full text-left bg-ituka-cream-soft border border-ituka-border rounded-2xl px-4 py-4 hover:bg-ituka-cream transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <p className="text-ituka-ink font-bold truncate">{a.title}</p>
+                          <p className="text-ituka-ink-muted text-sm font-medium mt-1 truncate">{a.subtitle}</p>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs font-bold text-ituka-ink/60 flex-shrink-0">
+                          <span>{formatRelative(a.date)}</span>
+                          <ArrowRight className="w-4 h-4 text-ituka-gold" />
+                        </div>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </section>
-
-      {/* Featured Products Preview */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-ituka-ink mb-4">Favoritos de ITUKA</h2>
-            <div className="w-24 h-1 bg-ituka-gold mx-auto rounded-full"></div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Mock Products for Home Display */}
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="group cursor-pointer">
-                <div className="relative h-96 bg-ituka-cream rounded-2xl overflow-hidden mb-6">
-                  <img 
-                    src={`https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D`} 
-                    alt="Product" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
-                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest text-ituka-ink">
-                    Best Seller
-                  </div>
-                </div>
-                <h3 className="text-xl font-serif font-bold text-ituka-ink group-hover:text-ituka-green transition-colors">
-                  Sérum Regenerador {i}
-                </h3>
-                <div className="flex items-center gap-2 mb-2">
-                   <div className="flex text-ituka-gold">
-                     {[...Array(5)].map((_, starI) => <Star key={starI} className="w-3 h-3 fill-current" />)}
-                   </div>
-                   <span className="text-xs text-stone-400">(24 reseñas)</span>
-                </div>
-                <p className="text-ituka-ink-muted font-medium">$45.00</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center mt-16">
-             <Link to="/products" className="inline-flex items-center gap-2 text-ituka-green font-bold uppercase tracking-widest hover:text-ituka-ink transition-colors border-b border-ituka-green pb-1 hover:border-ituka-ink">
-                Ver toda la colección <ArrowRight className="w-4 h-4" />
-             </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Banner Section */}
-      <section className="py-24 bg-ituka-ink text-ituka-cream relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')]"></div>
-        <div className="max-w-7xl mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center gap-12">
-           <div className="flex-1">
-             <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight">
-               Ingredientes puros, <br/> <span className="text-ituka-gold">resultados reales.</span>
-             </h2>
-             <p className="text-ituka-cream/80 text-lg mb-8 max-w-lg">
-               Cada gota de nuestros productos contiene la esencia de la naturaleza. Sin parabenos, sin sulfatos, 100% cruelty-free.
-             </p>
-             <Link to="/about" className="text-ituka-gold border-b border-ituka-gold pb-1 hover:text-white hover:border-white transition-colors">
-               Conoce nuestros ingredientes
-             </Link>
-           </div>
-           <div className="flex-1 flex gap-4">
-              <div className="bg-ituka-cream/10 p-6 rounded-2xl backdrop-blur-sm border border-ituka-cream/20 flex-1 text-center">
-                 <div className="text-3xl mb-2">🌱</div>
-                 <h4 className="font-serif font-bold mb-2">100% Natural</h4>
-                 <p className="text-sm text-ituka-cream/60">Certificado orgánico</p>
-              </div>
-              <div className="bg-ituka-cream/10 p-6 rounded-2xl backdrop-blur-sm border border-ituka-cream/20 flex-1 text-center">
-                 <div className="text-3xl mb-2">🐰</div>
-                 <h4 className="font-serif font-bold mb-2">Cruelty Free</h4>
-                 <p className="text-sm text-ituka-cream/60">Respetamos la vida</p>
-              </div>
-           </div>
-        </div>
-      </section>
+      </div>
     </div>
   );
 }

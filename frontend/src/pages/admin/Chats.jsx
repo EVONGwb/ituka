@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
-import { MessageSquare, Search, Filter, Clock, CheckCheck, User, MoreVertical, ShoppingBag, ArrowRight } from 'lucide-react';
+import { MessageSquare, Search, Filter, Clock, CheckCheck, User, MoreVertical, ShoppingBag, ArrowRight, CreditCard, Truck, X } from 'lucide-react';
 import { SearchInput, EmptyState, StatusBadge } from '../../components/admin/ui';
 import AdminChatWidget from '../../components/admin/chat/AdminChatWidget';
 import { useAdminPreferences } from '../../context/AdminPreferencesContext';
@@ -17,6 +17,14 @@ export default function AdminChats() {
   const [filterType, setFilterType] = useState('all'); // all, unread
   const [relatedRequest, setRelatedRequest] = useState(null);
   const [showDetails, setShowDetails] = useState(true);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmDraft, setConfirmDraft] = useState({
+    finalTotal: '',
+    paymentMethod: 'transferencia',
+    deliveryMethod: 'envio',
+    note: ''
+  });
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   // ... (fetchConversations logic remains similar)
   const fetchConversations = async () => {
@@ -39,6 +47,7 @@ export default function AdminChats() {
   // Fetch related request when user changes
   useEffect(() => {
       if (userId) {
+          setShowConfirm(false);
           fetchRelatedRequest();
       }
   }, [userId]);
@@ -66,6 +75,43 @@ export default function AdminChats() {
     } catch (error) {
         console.error("Error updating request status:", error);
         alert("Error al actualizar la solicitud");
+    }
+  };
+
+  const openConfirm = () => {
+    if (!relatedRequest) return;
+    setConfirmDraft({
+      finalTotal: relatedRequest.total,
+      paymentMethod: relatedRequest.paymentMethod || 'transferencia',
+      deliveryMethod: relatedRequest.deliveryMethod || 'envio',
+      note: ''
+    });
+    setShowConfirm(true);
+  };
+
+  const confirmFromChat = async () => {
+    if (!relatedRequest) return;
+    const parsedTotal = Number(confirmDraft.finalTotal);
+    if (!Number.isFinite(parsedTotal) || parsedTotal <= 0) {
+      alert('Precio final inválido');
+      return;
+    }
+
+    try {
+      setConfirmLoading(true);
+      await api.post(`/orders/${relatedRequest._id}/confirm`, {
+        finalTotal: parsedTotal,
+        paymentMethod: confirmDraft.paymentMethod,
+        deliveryMethod: confirmDraft.deliveryMethod,
+        note: confirmDraft.note
+      });
+      setShowConfirm(false);
+      fetchRelatedRequest();
+    } catch (error) {
+      console.error('Error confirming order:', error);
+      alert(error?.response?.data?.message || 'Error al confirmar el pedido');
+    } finally {
+      setConfirmLoading(false);
     }
   };
 
@@ -246,12 +292,87 @@ export default function AdminChats() {
                                             
                                             {relatedRequest.status !== 'confirmado' && relatedRequest.status !== 'cancelado' ? (
                                                 <div className="space-y-2.5">
-                                                    <button 
-                                                        onClick={() => updateRequestStatus(relatedRequest._id, 'confirmado')}
-                                                        className="w-full py-3 bg-ituka-green text-white rounded-xl text-xs font-bold shadow-md hover:bg-ituka-green/90 transition-all flex items-center justify-center gap-2 group"
-                                                    >
-                                                        <CheckCheck className="w-4 h-4 group-hover:scale-110 transition-transform" /> Confirmar Pedido
-                                                    </button>
+                                                    {!showConfirm ? (
+                                                      <button 
+                                                          onClick={openConfirm}
+                                                          className="w-full py-3 bg-ituka-gold text-ituka-ink rounded-xl text-xs font-bold shadow-ituka-card hover:shadow-ituka-float transition-all flex items-center justify-center gap-2"
+                                                      >
+                                                          <CheckCheck className="w-4 h-4" strokeWidth={1.5} /> Confirmar pedido
+                                                      </button>
+                                                    ) : (
+                                                      <div className="bg-white rounded-2xl border border-stone-200 p-3 space-y-3">
+                                                        <div>
+                                                          <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Precio final</label>
+                                                          <input
+                                                            value={confirmDraft.finalTotal}
+                                                            onChange={(e) => setConfirmDraft((p) => ({ ...p, finalTotal: e.target.value }))}
+                                                            inputMode="decimal"
+                                                            className="ituka-input"
+                                                          />
+                                                        </div>
+
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                          <div>
+                                                            <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Pago</label>
+                                                            <div className="relative">
+                                                              <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ituka-ink/35" strokeWidth={1.5} />
+                                                              <select
+                                                                value={confirmDraft.paymentMethod}
+                                                                onChange={(e) => setConfirmDraft((p) => ({ ...p, paymentMethod: e.target.value }))}
+                                                                className="ituka-select pl-10"
+                                                              >
+                                                                <option value="transferencia">Transferencia</option>
+                                                                <option value="efectivo">Efectivo</option>
+                                                                <option value="tarjeta">Tarjeta</option>
+                                                                <option value="pendiente">Pendiente</option>
+                                                              </select>
+                                                            </div>
+                                                          </div>
+                                                          <div>
+                                                            <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Envío</label>
+                                                            <div className="relative">
+                                                              <Truck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ituka-ink/35" strokeWidth={1.5} />
+                                                              <select
+                                                                value={confirmDraft.deliveryMethod}
+                                                                onChange={(e) => setConfirmDraft((p) => ({ ...p, deliveryMethod: e.target.value }))}
+                                                                className="ituka-select pl-10"
+                                                              >
+                                                                <option value="envio">Envío</option>
+                                                                <option value="recogida">Recogida</option>
+                                                                <option value="pendiente">Pendiente</option>
+                                                              </select>
+                                                            </div>
+                                                          </div>
+                                                        </div>
+
+                                                        <div>
+                                                          <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Nota (opcional)</label>
+                                                          <textarea
+                                                            value={confirmDraft.note}
+                                                            onChange={(e) => setConfirmDraft((p) => ({ ...p, note: e.target.value }))}
+                                                            className="ituka-input h-20 resize-none"
+                                                            placeholder="Dirección, instrucciones, referencia de pago..."
+                                                          />
+                                                        </div>
+
+                                                        <div className="flex gap-2">
+                                                          <button
+                                                            onClick={() => setShowConfirm(false)}
+                                                            className="flex-1 ituka-btn ituka-btn-secondary"
+                                                            disabled={confirmLoading}
+                                                          >
+                                                            Cancelar
+                                                          </button>
+                                                          <button
+                                                            onClick={confirmFromChat}
+                                                            className="flex-1 ituka-btn ituka-btn-primary"
+                                                            disabled={confirmLoading}
+                                                          >
+                                                            {confirmLoading ? 'Confirmando…' : 'Confirmar'}
+                                                          </button>
+                                                        </div>
+                                                      </div>
+                                                    )}
                                                     
                                                     <div className="flex gap-2">
                                                         <button 

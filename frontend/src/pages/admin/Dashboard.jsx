@@ -20,12 +20,16 @@ import { StatCard, SectionHeader, ActionButton, SearchInput } from '../../compon
 import { useAdminPreferences } from '../../context/AdminPreferencesContext';
 import { formatDate } from '../../lib/adminDateFormat';
 import { ITUKA_PALETTE } from '../../styles/itukaPalette';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AdminDashboard() {
   const { prefs } = useAdminPreferences();
+  const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const displayName = user?.name || 'Prudencio';
 
   useEffect(() => {
     fetchStats();
@@ -62,33 +66,104 @@ export default function AdminDashboard() {
   return (
     <div>
       {/* Header del Dashboard */}
-      <div className="ituka-card p-6 mb-10">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div>
-            <h2 className="text-[32px] font-serif font-bold text-ituka-text tracking-tight">Dashboard</h2>
-            <p className="text-ituka-ink/55 text-base mt-1 font-light">Resumen general de tu negocio</p>
-          </div>
+      <div className="ituka-card p-7 mb-8 relative overflow-hidden bg-gradient-to-br from-ituka-cream-soft to-ituka-surface">
+        <div className="absolute -right-10 -top-10 w-40 h-40 bg-ituka-gold/10 rounded-full blur-2xl" />
+        <div className="absolute -left-16 -bottom-20 w-56 h-56 bg-ituka-gold/5 rounded-full blur-2xl" />
 
-          <div className="flex items-center gap-4 w-full md:w-auto">
-            <div className="flex-1 md:flex-none md:w-72">
-              <SearchInput placeholder="Buscar cliente, pedido..." />
+        <div className="relative">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-2xl sm:text-[32px] font-serif font-bold text-ituka-text tracking-tight leading-tight">Hola, {displayName}</h2>
+              <p className="text-ituka-ink/55 text-sm sm:text-base mt-1 font-light">ITUKA Skin Care</p>
             </div>
 
             <div className="flex items-center gap-3">
-              <button className="relative p-2 rounded-full text-ituka-ink/45 hover:text-ituka-gold transition-colors hover:bg-ituka-cream-soft">
+              <button className="relative h-11 w-11 rounded-2xl border border-ituka-border/70 bg-white/70 backdrop-blur-md text-ituka-ink/55 hover:text-ituka-gold transition-colors flex items-center justify-center shadow-ituka-card">
                 <Bell className="w-5 h-5" strokeWidth={1.5} />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-ituka-danger rounded-full border-2 border-white"></span>
+                <span className="absolute top-2 right-2 w-2 h-2 bg-ituka-danger rounded-full border-2 border-white"></span>
               </button>
 
-              <Link to="/admin/settings" className="flex items-center gap-3 group">
-                <div className="w-10 h-10 rounded-full bg-ituka-cream-soft flex items-center justify-center border border-ituka-border/70 group-hover:border-ituka-gold/30 transition-colors overflow-hidden shadow-ituka-card">
+              <Link to="/admin/settings" className="hidden md:flex items-center gap-3 group">
+                <div className="w-11 h-11 rounded-2xl bg-white/70 backdrop-blur-md flex items-center justify-center border border-ituka-border/70 group-hover:border-ituka-gold/30 transition-colors overflow-hidden shadow-ituka-card">
                   <img src="https://ui-avatars.com/api/?name=Admin&background=random" alt="Admin" className="w-full h-full object-cover" />
                 </div>
               </Link>
             </div>
           </div>
+
+          <div className="hidden md:block mt-6">
+            <SearchInput placeholder="Buscar cliente, pedido..." />
+          </div>
         </div>
       </div>
+
+      <div className="md:hidden space-y-5 mb-10">
+        <Link to="/admin/requests" className="block ituka-card p-7 relative overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-ituka-gold/70" />
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-ituka-ink/45">Solicitudes pendientes</p>
+              <p className="mt-3 text-[52px] leading-none font-bold text-ituka-text tracking-tight">{stats.newRequests}</p>
+              <p className="mt-2 text-sm text-ituka-ink/55 font-medium">Ver solicitudes →</p>
+            </div>
+            <div className="p-4 rounded-2xl bg-ituka-gold/10 border border-ituka-gold/20 shadow-ituka-inset">
+              <FileText className="w-6 h-6 text-ituka-gold" strokeWidth={1.5} />
+            </div>
+          </div>
+          <div className="mt-5 h-px bg-ituka-gold/20" />
+          <p className="mt-3 text-xs text-ituka-ink/45">3 nuevas hoy</p>
+        </Link>
+
+        <Link to="/admin/chats" className="block ituka-card p-7">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-ituka-ink/45">Chats activos</p>
+              <p className="mt-3 text-4xl font-bold text-ituka-text tracking-tight">{stats.pendingMessages}</p>
+              <p className="mt-2 text-xs text-ituka-ink/45">Mensajes pendientes</p>
+            </div>
+            <div className="p-4 rounded-2xl bg-ituka-gold/10 border border-ituka-border/60 shadow-ituka-inset">
+              <MessageSquare className="w-6 h-6 text-ituka-gold" strokeWidth={1.5} />
+            </div>
+          </div>
+        </Link>
+
+        <Link to="/admin/orders" className="block ituka-card p-7">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-ituka-ink/45">Pedidos en proceso</p>
+              <p className="mt-3 text-4xl font-bold text-ituka-text tracking-tight">{stats.activeOrders}</p>
+              <p className="mt-2 text-xs text-ituka-ink/45">Activos</p>
+            </div>
+            <div className="p-4 rounded-2xl bg-ituka-gold/10 border border-ituka-border/60 shadow-ituka-inset">
+              <ShoppingBag className="w-6 h-6 text-ituka-gold" strokeWidth={1.5} />
+            </div>
+          </div>
+        </Link>
+
+        <div className="ituka-card p-7">
+          <h3 className="font-bold text-ituka-text text-lg font-serif flex items-center gap-2">
+            <Clock className="w-5 h-5 text-ituka-gold" strokeWidth={1.5} />
+            Actividad reciente
+          </h3>
+          {(stats.recentActivity || []).length === 0 ? (
+            <p className="mt-4 text-sm text-ituka-ink/45">Sin actividad por ahora.</p>
+          ) : (
+            <div className="mt-4 space-y-3">
+              {stats.recentActivity.slice(0, 3).map((a, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="mt-2 w-2 h-2 rounded-full bg-ituka-gold/70" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-ituka-ink truncate">{a.title}</p>
+                    <p className="text-xs text-ituka-ink/45 mt-0.5 truncate">{a.user} • {a.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="hidden md:block">
       
       {/* Fila 1: KPIs Principales (Prioridad Urgente) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -377,6 +452,8 @@ export default function AdminDashboard() {
             <span className="font-bold text-xs text-stone-600 group-hover:text-teal-600 uppercase tracking-wider">Ver Clientes</span>
           </Link>
         </div>
+      </div>
+
       </div>
     </div>
   );

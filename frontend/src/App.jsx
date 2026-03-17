@@ -12,6 +12,7 @@ import MyRequests from "./pages/MyRequests";
 import ProductCatalog from "./pages/ProductCatalog";
 import ProductDetail from "./pages/ProductDetail";
 import Profile from "./pages/Profile";
+import CustomerTabLayout from "./components/CustomerTabLayout";
 
 // Admin Imports
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -37,14 +38,17 @@ function Home() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password/:token" element={<ResetPassword />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/dashboard" element={<Dashboard />} />
+      <Route element={<CustomerTabLayout />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/products" element={<ProductCatalog />} />
+        <Route path="/products/:id" element={<ProductDetail />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/requests" element={<MyRequests />} />
+        <Route path="/chat" element={<Chat />} />
+        <Route path="/profile" element={<Profile />} />
+      </Route>
+
       <Route path="/about" element={<Dashboard />} />
-      <Route path="/products" element={<ProductCatalog />} />
-      <Route path="/products/:id" element={<ProductDetail />} />
-      <Route path="/cart" element={<Cart />} />
-      <Route path="/chat" element={<Chat />} />
-      <Route path="/requests" element={<MyRequests />} />
-      <Route path="/profile" element={<Profile />} />
 
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminLayout />}>

@@ -53,26 +53,30 @@ export default function Profile() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 font-sans">
-      <div className="bg-ituka-surface rounded-3xl shadow-xl shadow-ituka-green/5 border border-ituka-border overflow-hidden">
-        <div className="bg-ituka-ink p-8 text-ituka-cream flex justify-between items-center relative overflow-hidden">
-          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')]"></div>
-          <div className="relative z-10">
-             <h1 className="text-3xl font-serif font-bold flex items-center gap-3">
-               <div className="bg-ituka-gold text-ituka-ink p-2 rounded-full">
-                 <User className="w-6 h-6" />
-               </div>
-               Mi Perfil
-             </h1>
-             <p className="text-ituka-cream/60 mt-2 ml-14">Gestiona tu información personal y preferencias</p>
+    <div className="min-h-screen bg-ituka-cream-soft font-sans py-10 px-6">
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-white rounded-[28px] shadow-ituka-card border border-ituka-border overflow-hidden">
+          <div className="p-6 flex justify-between items-start gap-4">
+            <div className="flex items-start gap-4">
+              <div className="w-1.5 self-stretch rounded-full bg-ituka-gold/70" />
+              <div>
+                <h1 className="text-3xl font-serif font-bold text-ituka-ink flex items-center gap-2">
+                  <span className="w-10 h-10 rounded-2xl bg-ituka-cream-soft border border-ituka-border flex items-center justify-center">
+                    <User className="w-5 h-5 text-ituka-ink" />
+                  </span>
+                  Perfil
+                </h1>
+                <p className="text-ituka-ink-muted mt-2">Gestiona tu información personal y preferencias</p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsEditing(!isEditing)}
+              className="flex items-center gap-2 bg-ituka-cream-soft hover:bg-ituka-cream px-5 py-2.5 rounded-2xl transition border border-ituka-border font-bold text-ituka-ink text-sm"
+            >
+              {isEditing ? 'Cancelar' : <><Edit2 className="w-4 h-4 text-ituka-gold" /> Editar</>}
+            </button>
           </div>
-          <button
-            onClick={() => setIsEditing(!isEditing)}
-            className="relative z-10 flex items-center gap-2 bg-ituka-cream/10 hover:bg-ituka-cream/20 px-6 py-2 rounded-full transition border border-ituka-cream/20 font-medium"
-          >
-            {isEditing ? 'Cancelar' : <><Edit2 className="w-4 h-4" /> Editar</>}
-          </button>
-        </div>
 
         {message.text && (
           <div className={`p-4 ${message.type === 'success' ? 'bg-ituka-success-soft text-ituka-success' : 'bg-ituka-danger-soft text-ituka-danger'}`}>
@@ -81,7 +85,7 @@ export default function Profile() {
         )}
 
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-10">
+        <form onSubmit={handleSubmit} className="p-6 space-y-10">
           {/* Información Personal */}
           <section>
             <h3 className="text-xl font-serif font-bold text-ituka-ink mb-6 border-b border-ituka-border pb-2">Información Personal</h3>
@@ -249,6 +253,7 @@ export default function Profile() {
           )}
         </form>
       </div>
+    </div>
     </div>
   );
 }

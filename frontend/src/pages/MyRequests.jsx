@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { getMyRequests } from "../lib/api";
 import { getToken } from "../lib/auth";
+import { useAuth } from "../context/AuthContext";
+import { ArrowRight, MessageSquare } from "lucide-react";
 
 export default function MyRequests() {
+  const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -49,52 +52,41 @@ export default function MyRequests() {
   if (error) return <div className="min-h-screen bg-ituka-cream-soft flex items-center justify-center text-ituka-danger">Error: {error}</div>;
 
   return (
-    <div className="min-h-screen bg-ituka-cream-soft font-sans py-12 px-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between gap-4 mb-8">
-          <h2 className="text-3xl font-serif font-bold text-ituka-ink">Mis Solicitudes</h2>
-          <Link to="/dashboard" className="text-ituka-muted hover:text-ituka-ink transition-colors">← Volver</Link>
-        </div>
+    <div className="min-h-screen bg-ituka-cream-soft font-sans py-10 px-6">
+      <div className="max-w-2xl mx-auto">
+        <h2 className="text-3xl font-serif font-bold text-ituka-ink mb-8">Solicitudes</h2>
 
         {requests.length === 0 ? (
           <div className="bg-ituka-surface border border-ituka-border rounded-2xl p-10 text-ituka-ink-muted">
             No tienes solicitudes realizadas.
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {requests.map((req) => (
-              <div key={req._id} className="bg-ituka-surface border border-ituka-border rounded-2xl p-6">
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div>
-                    <p className="text-sm text-ituka-muted">ID</p>
-                    <p className="font-bold text-ituka-ink">{req._id.slice(-6)}</p>
+              <button
+                key={req._id}
+                type="button"
+                onClick={() => navigate("/chat", { state: { requestId: req._id } })}
+                className="w-full text-left bg-white border border-ituka-border rounded-[28px] shadow-ituka-card p-6 hover:bg-ituka-cream transition-colors"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="font-serif font-bold text-ituka-ink text-lg leading-tight truncate">
+                      {(user?.name || "Tú").split(/\s+/)[0]} → {req.items?.[0]?.product?.name || "Producto"} → {req.status?.replaceAll("_", " ") || "nueva"}
+                    </p>
+                    <p className="text-ituka-ink-muted text-sm font-medium mt-2 flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-ituka-gold" />
+                      Abrir chat directo
+                    </p>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${getStatusClasses(req.status)}`}>
-                    {req.status.replaceAll('_', ' ')}
-                  </span>
-                </div>
-
-                <p className="text-sm text-ituka-muted mb-4">
-                  {new Date(req.createdAt).toLocaleString()}
-                </p>
-
-                <div className="border-t border-ituka-border pt-4 space-y-2">
-                  {req.items.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between gap-4 text-sm">
-                      <span className="text-ituka-ink">
-                        {item.quantity}x {item.product?.name || 'Producto eliminado'}
-                      </span>
-                      <span className="font-semibold text-ituka-ink-muted">${item.price}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {req.note && (
-                  <div className="mt-4 bg-ituka-cream border border-ituka-border rounded-xl p-4 text-sm text-ituka-ink-muted italic">
-                    Nota: {req.note}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${getStatusClasses(req.status)}`}>
+                      {req.status?.replaceAll('_', ' ') || 'nueva'}
+                    </span>
+                    <ArrowRight className="w-4 h-4 text-ituka-gold" />
                   </div>
-                )}
-              </div>
+                </div>
+              </button>
             ))}
           </div>
         )}

@@ -2,7 +2,60 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getProductById, addToCart } from '../lib/api';
 import { getToken } from '../lib/auth';
-import { ArrowLeft, Minus, Plus, Heart, ShoppingBag, Check } from 'lucide-react';
+import { ArrowLeft, Minus, Plus, Heart, ShoppingBag, Check, Sparkles } from 'lucide-react';
+
+function toListItems(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.map(String).map((s) => s.trim()).filter(Boolean);
+  const text = String(value).trim();
+  if (!text) return [];
+  return text
+    .split(/\r?\n|•|·|—|–|,|;|\s+-\s+|\s+\-\s+/)
+    .map((s) => String(s).trim())
+    .filter(Boolean);
+}
+
+function DetailBlock({ title, items, variant = 'bullets' }) {
+  const [expanded, setExpanded] = useState(false);
+  const normalized = Array.isArray(items) ? items : [];
+  const hasMore = normalized.length > 6;
+  const visible = expanded ? normalized : normalized.slice(0, 6);
+
+  return (
+    <div className="ituka-card p-5 sm:p-6">
+      <h3 className="text-base sm:text-lg font-serif font-bold text-ituka-ink mb-4 flex items-center gap-2">
+        <Check className="w-4 h-4 text-ituka-green" /> {title}
+      </h3>
+
+      {variant === 'steps' ? (
+        <ol className="space-y-2 list-decimal list-inside text-ituka-ink-muted/80 text-sm leading-relaxed">
+          {visible.map((t, idx) => (
+            <li key={`${title}-${idx}`}>{t}</li>
+          ))}
+        </ol>
+      ) : (
+        <ul className="space-y-2 text-ituka-ink-muted/80 text-sm leading-relaxed">
+          {visible.map((t, idx) => (
+            <li key={`${title}-${idx}`} className="flex gap-2">
+              <span className="mt-2 w-1.5 h-1.5 rounded-full bg-ituka-gold flex-shrink-0" />
+              <span className="min-w-0">{t}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {hasMore && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-4 text-sm font-bold text-ituka-gold hover:text-ituka-gold/80 transition-colors"
+        >
+          {expanded ? 'Ver menos' : 'Ver más'}
+        </button>
+      )}
+    </div>
+  );
+}
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -12,6 +65,7 @@ const ProductDetail = () => {
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
+  const [toast, setToast] = useState('');
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -41,7 +95,8 @@ const ProductDetail = () => {
     setAdding(true);
     try {
       await addToCart(token, product._id, quantity);
-      alert('Producto añadido al carrito exitosamente');
+      setToast('Añadido a la cesta');
+      setTimeout(() => setToast(''), 1600);
     } catch (err) {
       console.error(err);
       alert('Error al añadir al carrito');
@@ -56,115 +111,103 @@ const ProductDetail = () => {
 
   const { name, price, description, ingredients, benefits, usageMode, skinTypes, images, category } = product;
   const mainImage = images && images.length > 0 ? images[0] : 'https://placehold.co/800x800?text=No+Image';
+  const ingredientItems = toListItems(ingredients);
+  const benefitItems = toListItems(benefits);
+  const usageItems = toListItems(usageMode);
+  const mainBenefit = (() => {
+    if (Array.isArray(benefits)) return benefits.find((b) => typeof b === 'string' && b.trim())?.trim();
+    if (typeof benefits !== 'string') return null;
+    const trimmed = benefits.trim();
+    if (!trimmed) return null;
+    const candidate = trimmed.split(/\r?\n|•|\s+-\s+|,|\.|;/)[0]?.trim();
+    return candidate || trimmed.slice(0, 80);
+  })();
 
   return (
-    <div className="min-h-screen bg-ituka-cream-soft font-sans py-12 px-6">
-      <div className="max-w-7xl mx-auto">
-        <Link to="/products" className="inline-flex items-center gap-2 text-ituka-ink-muted hover:text-ituka-green mb-8 transition-colors group">
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Volver al catálogo
+    <div className="min-h-screen bg-ituka-cream-soft font-sans pb-[168px]">
+      {toast && (
+        <div className="fixed top-6 left-0 right-0 z-50 flex justify-center px-6">
+          <div className="bg-ituka-green text-white px-5 py-3 rounded-2xl shadow-lg text-sm font-bold">
+            {toast}
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10">
+        <Link to="/products" className="inline-flex items-center gap-2 text-ituka-ink-muted hover:text-ituka-gold mb-6 transition-colors group">
+          <ArrowLeft className="w-4 h-4" strokeWidth={1.5} /> Volver
         </Link>
 
-        <div className="grid md:grid-cols-2 gap-12 lg:gap-20">
-          {/* Image Section */}
-          <div className="bg-ituka-surface rounded-3xl p-4 shadow-xl shadow-ituka-green/5">
-            <div className="aspect-square rounded-2xl overflow-hidden bg-ituka-cream">
-              <img 
-                src={mainImage} 
-                alt={name} 
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" 
-              />
-            </div>
+        <div className="ituka-card p-3 sm:p-4">
+          <div className="h-[52vh] sm:h-[56vh] rounded-2xl overflow-hidden bg-ituka-cream">
+            <img 
+              src={mainImage} 
+              alt={name} 
+              className="w-full h-full object-cover"
+            />
           </div>
+        </div>
 
-          {/* Details Section */}
-          <div className="flex flex-col justify-center">
-            <span className="text-ituka-green font-bold uppercase tracking-widest text-sm mb-4">
-              {category}
-            </span>
-            
-            <h1 className="text-4xl md:text-5xl font-serif font-bold text-ituka-ink mb-4 leading-tight">{name}</h1>
-            
-            <div className="flex items-center gap-4 mb-8">
-               <span className="text-3xl font-light text-ituka-ink-muted">${price.toFixed(2)}</span>
-               {skinTypes && (
-                 <div className="flex gap-2">
-                   {skinTypes.map(type => (
-                     <span key={type} className="text-xs px-2 py-1 bg-ituka-cream-deep text-ituka-green rounded-full uppercase tracking-wider font-bold">
-                       {type}
-                     </span>
-                   ))}
-                 </div>
-               )}
-            </div>
+        <div className="mt-6">
+          <p className="text-ituka-ink/55 font-bold uppercase tracking-widest text-xs">
+            {category}
+          </p>
 
-            <p className="text-ituka-ink-muted/80 text-lg leading-relaxed mb-10">
-              {description}
+          <h1 className="mt-2 text-3xl sm:text-4xl font-serif font-bold text-ituka-ink leading-tight">
+            {name}
+          </h1>
+
+          {mainBenefit ? (
+            <p className="mt-2 text-ituka-ink-muted text-base sm:text-lg font-medium">
+              {mainBenefit}
             </p>
+          ) : null}
+        </div>
 
-            <div className="flex gap-4 mb-10">
-              <div className="flex items-center border border-ituka-gold/50 rounded-full px-2">
-                <button 
-                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  className="p-3 text-ituka-green hover:bg-ituka-cream rounded-full transition-colors"
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <span className="w-10 text-center font-bold text-ituka-ink">{quantity}</span>
-                <button 
-                  onClick={() => setQuantity(q => q + 1)}
-                  className="p-3 text-ituka-green hover:bg-ituka-cream rounded-full transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
-              
-              <button 
-                className={`flex-1 py-4 px-6 rounded-full font-bold uppercase tracking-widest text-sm shadow-lg flex items-center justify-center gap-2 transition-all
-                  ${adding ? 'bg-ituka-ink-muted cursor-not-allowed' : 'bg-ituka-gold hover:bg-ituka-gold/90 text-white shadow-ituka-gold/30'}`}
-                onClick={handleAddToCart}
-                disabled={adding}
-              >
-                {adding ? 'Añadiendo...' : <><ShoppingBag className="w-5 h-5" /> Añadir a la cesta</>}
-              </button>
-              
-              <button 
-                className="p-4 border border-ituka-gold text-ituka-gold rounded-full hover:bg-ituka-gold hover:text-white transition-colors"
-                onClick={() => alert('Añadido a favoritos')}
-              >
-                <Heart className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Tabs / Accordions */}
-            <div className="space-y-6 border-t border-ituka-gold/20 pt-8">
-              {ingredients && (
-                <div>
-                  <h3 className="text-lg font-serif font-bold text-ituka-ink mb-2 flex items-center gap-2">
-                    <Check className="w-4 h-4 text-ituka-green" /> Ingredientes
-                  </h3>
-                  <p className="text-ituka-ink-muted/70 text-sm leading-relaxed">{ingredients}</p>
-                </div>
-              )}
-
-              {benefits && (
-                <div>
-                  <h3 className="text-lg font-serif font-bold text-ituka-ink mb-2 flex items-center gap-2">
-                    <Check className="w-4 h-4 text-ituka-green" /> Beneficios
-                  </h3>
-                  <p className="text-ituka-ink-muted/70 text-sm leading-relaxed">{benefits}</p>
-                </div>
-              )}
-
-              {usageMode && (
-                <div>
-                  <h3 className="text-lg font-serif font-bold text-ituka-ink mb-2 flex items-center gap-2">
-                    <Check className="w-4 h-4 text-ituka-green" /> Modo de Uso
-                  </h3>
-                  <p className="text-ituka-ink-muted/70 text-sm leading-relaxed">{usageMode}</p>
-                </div>
-              )}
-            </div>
+        <div className="mt-7 border-t border-ituka-gold/20 pt-7">
+          <div className="grid gap-5 sm:gap-6">
+            {ingredientItems.length > 0 && <DetailBlock title="Ingredientes principales" items={ingredientItems} />}
+            {usageItems.length > 0 && <DetailBlock title="Modo de uso" items={usageItems} variant="steps" />}
           </div>
+        </div>
+      </div>
+
+      <div className="fixed left-0 right-0 bottom-16 bg-white/95 backdrop-blur border-t border-ituka-border">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-4">
+          <div className="flex items-center border border-ituka-gold/50 rounded-full px-2 bg-ituka-cream-soft">
+            <button 
+              onClick={() => setQuantity(q => Math.max(1, q - 1))}
+              className="p-3 text-ituka-green hover:bg-ituka-cream rounded-full transition-colors"
+              aria-label="Disminuir cantidad"
+            >
+              <Minus className="w-4 h-4" />
+            </button>
+            <span className="w-10 text-center font-bold text-ituka-ink">{quantity}</span>
+            <button 
+              onClick={() => setQuantity(q => q + 1)}
+              className="p-3 text-ituka-green hover:bg-ituka-cream rounded-full transition-colors"
+              aria-label="Aumentar cantidad"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+
+          <button 
+            className={`flex-1 py-4 px-6 rounded-2xl font-bold uppercase tracking-widest text-sm shadow-lg flex items-center justify-center gap-2 transition-all
+              ${adding ? 'bg-ituka-ink-muted cursor-not-allowed' : 'bg-ituka-gold hover:bg-ituka-gold/90 text-white shadow-ituka-gold/30'}`}
+            onClick={handleAddToCart}
+            disabled={adding}
+          >
+            {adding ? 'Añadiendo...' : <><ShoppingBag className="w-5 h-5" /> Añadir a cesta</>}
+          </button>
+
+          <button 
+            className="p-4 border border-ituka-gold text-ituka-gold rounded-2xl hover:bg-ituka-gold hover:text-white transition-colors"
+            onClick={() => alert('Añadido a favoritos')}
+            aria-label="Favorito"
+          >
+            <Heart className="w-6 h-6" />
+          </button>
         </div>
       </div>
     </div>

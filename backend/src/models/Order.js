@@ -8,9 +8,19 @@ const orderSchema = new mongoose.Schema({
     price: { type: Number, required: true }
   }],
   total: { type: Number, required: true },
+  finalTotal: { type: Number },
   note: { type: String },
   paymentMethod: { type: String, enum: ['efectivo', 'transferencia', 'tarjeta', 'pendiente'], default: 'pendiente' },
   deliveryMethod: { type: String, enum: ['envio', 'recogida', 'pendiente'], default: 'pendiente' },
+  deliveryAddress: {
+    street: String,
+    city: String,
+    state: String,
+    zip: String,
+    country: String
+  },
+  confirmedAt: { type: Date },
+  confirmedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   status: { 
     type: String, 
     enum: [

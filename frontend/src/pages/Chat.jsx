@@ -3,14 +3,19 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { socket } from '../services/socket';
 import { api } from '../lib/api';
 import { getToken } from '../lib/auth';
-import { Send, Paperclip, Image as ImageIcon } from 'lucide-react';
+import { Send, Paperclip, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { can } from '../lib/permissions';
 
 export default function Chat() {
+  const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [chatId, setChatId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [file, setFile] = useState(null);
+  const [orderInfo, setOrderInfo] = useState(null);
+  const [confirming, setConfirming] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   
@@ -37,6 +42,17 @@ export default function Chat() {
         const historyRes = await api.get(`/chat/${chat._id}/messages`);
         setMessages(historyRes.data);
         setLoading(false);
+
+        if (requestId && requestId !== 'support-general') {
+          try {
+            const orderRes = await api.get(`/orders/${requestId}`);
+            setOrderInfo(orderRes.data);
+          } catch {
+            setOrderInfo(null);
+          }
+        } else {
+          setOrderInfo(null);
+        }
       } catch (error) {
         console.error('Error iniciando chat:', error);
         setLoading(false);
@@ -93,6 +109,23 @@ export default function Chat() {
     }
   };
 
+  const canConfirm = can(user?.role, 'orders:update') && orderInfo?._id;
+  const confirmOrder = async () => {
+    if (!orderInfo?._id) return;
+    if (!window.confirm('¿Confirmar pedido?')) return;
+    try {
+      setConfirming(true);
+      await api.put(`/orders/${orderInfo._id}/status`, { status: 'confirmado' });
+      const updated = await api.get(`/orders/${orderInfo._id}`);
+      setOrderInfo(updated.data);
+    } catch (error) {
+      console.error('Error confirmando pedido:', error);
+      alert('No se pudo confirmar el pedido');
+    } finally {
+      setConfirming(false);
+    }
+  };
+
   const handleFileChange = (e) => {
     if (e.target.files[0]) {
       setFile(e.target.files[0]);
@@ -104,12 +137,28 @@ export default function Chat() {
   if (loading) return <div className="flex justify-center items-center min-h-screen bg-ituka-cream-soft"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ituka-gold"></div></div>;
 
   return (
-    <div className="h-[calc(100vh-80px)] bg-ituka-cream-soft font-sans flex flex-col">
+    <div className="min-h-screen bg-ituka-cream-soft font-sans flex flex-col pb-36">
       <div className="bg-ituka-surface px-6 py-4 border-b border-ituka-gold/20 shadow-sm flex justify-between items-center">
         <div>
-          <h3 className="text-ituka-ink font-serif font-bold text-lg">Soporte ITUKA</h3>
-          <p className="text-ituka-success text-xs uppercase tracking-wider">En línea</p>
+          <h3 className="text-ituka-ink font-serif font-bold text-lg">
+            {orderInfo?.user?.name ? orderInfo.user.name : 'Soporte ITUKA'}
+          </h3>
+          <p className="text-ituka-ink-muted text-xs font-bold uppercase tracking-wider">
+            {orderInfo?.items?.[0]?.product?.name ? orderInfo.items[0].product.name : 'En línea'}
+          </p>
         </div>
+
+        {canConfirm && (
+          <button
+            type="button"
+            onClick={confirmOrder}
+            disabled={confirming}
+            className="bg-ituka-gold text-white px-4 py-2.5 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-ituka-gold/90 transition-colors shadow-lg shadow-ituka-gold/20 disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center gap-2"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            {confirming ? 'Confirmando...' : 'Confirmar pedido'}
+          </button>
+        )}
       </div>
       
       <div className="flex-grow overflow-y-auto p-6 space-y-4">
@@ -139,7 +188,7 @@ export default function Chat() {
         <div ref={messagesEndRef} />
       </div>
 
-      <form className="bg-ituka-surface p-4 border-t border-ituka-gold/20 flex items-center gap-4" onSubmit={handleSendMessage}>
+      <form className="fixed left-0 right-0 bottom-16 bg-ituka-surface p-4 border-t border-ituka-gold/20 flex items-center gap-4" onSubmit={handleSendMessage}>
         <button 
           type="button" 
           className="p-3 text-ituka-green hover:bg-ituka-cream rounded-full transition-colors"
