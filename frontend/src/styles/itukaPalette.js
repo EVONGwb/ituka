@@ -1,0 +1,21 @@
+export const ITUKA_PALETTE = {
+  cream: '#FAF7F0',
+  creamSoft: '#F9F7F2',
+  creamDeep: '#EBE5CE',
+  surface: '#FFFFFF',
+  border: '#E9E2D6',
+  text: '#1F1F1F',
+  muted: '#5A5A5A',
+  ink: '#3E2723',
+  inkMuted: '#5D4037',
+  gold: '#C9A227',
+  goldHighlight: '#E7D08A',
+  goldShadow: '#B88A1E',
+  green: '#556B2F',
+  success: '#6FA387',
+  warning: '#D2A15A',
+  danger: '#C97A7A',
+  info: '#78A6C8',
+  stone400: '#A8A29E',
+  stone200: '#E7E5E4'
+};

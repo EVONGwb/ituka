@@ -164,3 +164,79 @@ export const getStats = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener estadísticas' });
   }
 };
+
+export const getAnalytics = async (req, res) => {
+  try {
+    const rawDays = Number(req.query?.days);
+    const days = Number.isFinite(rawDays) ? Math.min(Math.max(rawDays, 7), 365) : 30;
+
+    const now = new Date();
+    const from = new Date(now);
+    from.setDate(from.getDate() - days);
+
+    const paidStatuses = ['pagado', 'enviado', 'entregado'];
+    const confirmedStatuses = ['confirmado', 'pagado', 'en_preparacion', 'enviado', 'listo_para_recoger', 'entregado'];
+
+    const [
+      requestsReceived,
+      confirmedOrders,
+      salesAgg,
+      requestsByWeek,
+      confirmedOrdersByWeek,
+      topRequestedProducts,
+      topCustomers
+    ] = await Promise.all([
+      Order.countDocuments({ createdAt: { $gte: from } }),
+      Order.countDocuments({ createdAt: { $gte: from }, status: { $in: confirmedStatuses } }),
+      Order.aggregate([
+        { $match: { createdAt: { $gte: from }, status: { $in: paidStatuses } } },
+        { $group: { _id: null, total: { $sum: '$total' } } }
+      ]),
+      Order.aggregate([
+        { $match: { createdAt: { $gte: from } } },
+        { $group: { _id: { y: { $isoWeekYear: '$createdAt' }, w: { $isoWeek: '$createdAt' } }, count: { $sum: 1 } } },
+        { $sort: { '_id.y': 1, '_id.w': 1 } }
+      ]),
+      Order.aggregate([
+        { $match: { createdAt: { $gte: from }, status: { $in: confirmedStatuses } } },
+        { $group: { _id: { y: { $isoWeekYear: '$createdAt' }, w: { $isoWeek: '$createdAt' } }, count: { $sum: 1 } } },
+        { $sort: { '_id.y': 1, '_id.w': 1 } }
+      ]),
+      Order.aggregate([
+        { $match: { createdAt: { $gte: from } } },
+        { $unwind: '$items' },
+        { $group: { _id: '$items.product', count: { $sum: '$items.quantity' } } },
+        { $sort: { count: -1 } },
+        { $limit: 10 },
+        { $lookup: { from: 'products', localField: '_id', foreignField: '_id', as: 'product' } },
+        { $unwind: '$product' },
+        { $project: { _id: 0, productId: '$product._id', name: '$product.name', count: 1 } }
+      ]),
+      Order.aggregate([
+        { $match: { createdAt: { $gte: from }, status: { $in: paidStatuses } } },
+        { $group: { _id: '$user', totalSpent: { $sum: '$total' }, ordersCount: { $sum: 1 } } },
+        { $sort: { totalSpent: -1 } },
+        { $limit: 10 },
+        { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
+        { $unwind: '$user' },
+        { $project: { _id: 0, userId: '$user._id', name: '$user.name', email: '$user.email', totalSpent: 1, ordersCount: 1 } }
+      ])
+    ]);
+
+    const salesTotal = salesAgg?.[0]?.total || 0;
+
+    res.json({
+      rangeDays: days,
+      requestsReceived,
+      confirmedOrders,
+      salesTotal,
+      requestsByWeek: requestsByWeek.map((d) => ({ week: `${d._id.y}-W${String(d._id.w).padStart(2, '0')}`, count: d.count })),
+      confirmedOrdersByWeek: confirmedOrdersByWeek.map((d) => ({ week: `${d._id.y}-W${String(d._id.w).padStart(2, '0')}`, count: d.count })),
+      topRequestedProducts,
+      topCustomers
+    });
+  } catch (error) {
+    console.error('Error getting analytics:', error);
+    res.status(500).json({ message: 'Error al obtener analítica' });
+  }
+};

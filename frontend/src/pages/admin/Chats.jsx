@@ -4,10 +4,13 @@ import { api } from '../../lib/api';
 import { MessageSquare, Search, Filter, Clock, CheckCheck, User, MoreVertical, ShoppingBag, ArrowRight } from 'lucide-react';
 import { SearchInput, EmptyState, StatusBadge } from '../../components/admin/ui';
 import AdminChatWidget from '../../components/admin/chat/AdminChatWidget';
+import { useAdminPreferences } from '../../context/AdminPreferencesContext';
+import { formatDate, formatTime } from '../../lib/adminDateFormat';
 
 export default function AdminChats() {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const { prefs } = useAdminPreferences();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -77,16 +80,16 @@ export default function AdminChats() {
   const selectedConversation = conversations.find(c => c.user._id === userId);
 
   return (
-    <div className="h-[calc(100vh-100px)] flex flex-col bg-[#F9F9F7]">
+    <div className="h-[calc(100vh-100px-5rem)] lg:h-[calc(100vh-100px)] flex flex-col bg-ituka-cream-soft">
       {/* 1. ENCABEZADO */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold font-serif text-ituka-text tracking-tight">Centro de Mensajes</h1>
-          <p className="text-stone-500 text-sm mt-1">Conversaciones y gestión rápida de pedidos</p>
+          <p className="text-ituka-ink/55 text-sm mt-1">Conversaciones y gestión rápida de pedidos</p>
         </div>
         
         {/* Filtros Rápidos */}
-        <div className="flex items-center gap-1 p-1 bg-white border border-stone-100 rounded-2xl shadow-sm">
+        <div className="flex items-center gap-1 p-1 bg-white border border-ituka-border/70 rounded-2xl shadow-ituka-card">
             {[
                 { id: 'all', label: 'Todos' },
                 { id: 'unread', label: 'No leídos' }
@@ -96,8 +99,8 @@ export default function AdminChats() {
                     onClick={() => setFilterType(tab.id)}
                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                         filterType === tab.id 
-                        ? 'bg-ituka-text text-white shadow-md' 
-                        : 'text-stone-500 hover:bg-stone-50'
+                        ? 'bg-ituka-ink text-white shadow-ituka-card' 
+                        : 'text-ituka-muted hover:bg-ituka-cream-soft'
                     }`}
                 >
                     {tab.label}
@@ -107,16 +110,16 @@ export default function AdminChats() {
       </div>
 
       {/* 2. ÁREA DE TRABAJO UNIFICADA (Estilo WhatsApp Web/Slack) */}
-      <div className="flex-1 bg-white rounded-[24px] border border-stone-200 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden flex mx-1 mb-4">
+      <div className="flex-1 ituka-table-shell ituka-card-hover overflow-hidden flex mx-1 mb-4">
         
         {/* A. LISTA DE CHATS (Columna Izquierda) */}
-        <div className="w-80 flex flex-col border-r border-stone-100 bg-[#FAFAF9]">
-            <div className="p-4 border-b border-stone-100 bg-white">
+        <div className="w-80 flex flex-col border-r border-ituka-border/70 bg-ituka-cream-soft">
+            <div className="p-4 border-b border-ituka-border/60 bg-white">
                 <SearchInput 
                     value={searchTerm} 
                     onChange={(e) => setSearchTerm(e.target.value)} 
                     placeholder="Buscar chat..." 
-                    className="shadow-none border-stone-100 bg-stone-50"
+                    className="shadow-none bg-ituka-cream-soft"
                 />
             </div>
             <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -124,18 +127,18 @@ export default function AdminChats() {
                     <div 
                         key={conv.user._id}
                         onClick={() => navigate(`/admin/chats/${conv.user._id}`)}
-                        className={`p-4 cursor-pointer transition-all duration-200 border-b border-stone-50 flex items-center gap-3 relative group ${
+                        className={`p-4 cursor-pointer transition-all duration-200 border-b border-ituka-border/40 flex items-center gap-3 relative group ${
                             userId === conv.user._id 
                             ? 'bg-white border-l-4 border-l-ituka-gold' 
-                            : 'bg-transparent hover:bg-white hover:shadow-sm border-l-4 border-l-transparent'
+                            : 'bg-transparent hover:bg-white hover:shadow-ituka-card border-l-4 border-l-transparent'
                         }`}
                     >
                         {/* Avatar */}
                         <div className="relative flex-shrink-0">
                             <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold font-serif border ${
                                 userId === conv.user._id 
-                                ? 'bg-ituka-text text-ituka-gold border-ituka-gold/20' 
-                                : 'bg-white text-stone-500 border-stone-200'
+                                ? 'bg-ituka-ink text-ituka-gold border-ituka-gold/20' 
+                                : 'bg-white text-ituka-ink/60 border-ituka-border/70'
                             }`}>
                                 {conv.user.name.charAt(0).toUpperCase()}
                             </div>
@@ -153,7 +156,7 @@ export default function AdminChats() {
                                     {conv.user.name}
                                 </h3>
                                 <span className={`text-[10px] font-medium flex-shrink-0 ml-1 ${conv.unreadCount > 0 ? 'text-ituka-gold font-bold' : 'text-stone-400'}`}>
-                                    {conv.lastMessage?.createdAt ? new Date(conv.lastMessage.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
+                                    {conv.lastMessage?.createdAt ? formatTime(conv.lastMessage.createdAt, prefs) : ''}
                                 </span>
                             </div>
                             <div className="flex justify-between items-center">
@@ -239,7 +242,7 @@ export default function AdminChats() {
                                                 <StatusBadge status={relatedRequest.status} size="xs" />
                                             </div>
                                             <p className="text-2xl font-serif font-bold text-ituka-text mb-1">${relatedRequest.total}</p>
-                                            <p className="text-xs text-stone-500 mb-4">{new Date(relatedRequest.createdAt).toLocaleDateString()}</p>
+                                            <p className="text-xs text-stone-500 mb-4">{formatDate(relatedRequest.createdAt, prefs)}</p>
                                             
                                             {relatedRequest.status !== 'confirmado' && relatedRequest.status !== 'cancelado' ? (
                                                 <div className="space-y-2.5">

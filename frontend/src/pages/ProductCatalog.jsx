@@ -48,13 +48,13 @@ const ProductCatalog = () => {
   const skinTypes = ['Seca', 'Grasa', 'Mixta', 'Sensible', 'Normal', 'Todo tipo'];
 
   return (
-    <div className="min-h-screen bg-[#F9F7F2] font-sans">
+    <div className="min-h-screen bg-ituka-cream-soft font-sans">
       {/* Header Banner */}
-      <div className="bg-[#3E2723] text-[#F5F5DC] py-16 px-6 text-center relative overflow-hidden">
+      <div className="bg-ituka-ink text-ituka-cream py-16 px-6 text-center relative overflow-hidden">
          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')]"></div>
          <div className="relative z-10">
            <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4">Catálogo</h1>
-           <p className="text-lg text-[#D4AF37] max-w-2xl mx-auto font-light">
+           <p className="text-lg text-ituka-gold max-w-2xl mx-auto font-light">
              Explora nuestra selección de productos naturales diseñados para nutrir tu piel desde la raíz.
            </p>
          </div>
@@ -62,25 +62,25 @@ const ProductCatalog = () => {
 
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Filters Bar */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-12 flex flex-col md:flex-row gap-6 items-center border border-[#F5F5DC]">
+        <div className="bg-ituka-surface rounded-xl shadow-sm p-6 mb-12 flex flex-col md:flex-row gap-6 items-center border border-ituka-border">
           <div className="flex-1 w-full relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#D4AF37] w-5 h-5" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-ituka-gold w-5 h-5" />
             <input
               type="text"
               placeholder="Buscar productos..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-[#F9F7F2] border-none rounded-lg focus:ring-2 focus:ring-[#556B2F] text-[#3E2723] placeholder-[#3E2723]/40 transition-all"
+              className="w-full pl-12 pr-4 py-3 bg-ituka-cream-soft border-none rounded-lg focus:ring-2 focus:ring-ituka-gold/30 text-ituka-ink placeholder-ituka-ink/40 transition-all"
             />
           </div>
           
           <div className="flex gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
              <div className="relative min-w-[200px]">
-                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-[#556B2F] w-4 h-4" />
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-ituka-green w-4 h-4" />
                 <select 
                   value={category} 
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full pl-10 pr-8 py-3 bg-white border border-[#F5F5DC] rounded-lg text-[#3E2723] focus:border-[#556B2F] focus:outline-none appearance-none cursor-pointer"
+                  className="w-full pl-10 pr-8 py-3 bg-ituka-surface border border-ituka-border rounded-lg text-ituka-ink focus:border-ituka-gold focus:outline-none appearance-none cursor-pointer"
                 >
                   <option value="">Todas las Categorías</option>
                   {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
@@ -88,11 +88,11 @@ const ProductCatalog = () => {
              </div>
 
              <div className="relative min-w-[200px]">
-                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-[#556B2F] w-4 h-4" />
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-ituka-green w-4 h-4" />
                 <select 
                   value={skinType} 
                   onChange={(e) => setSkinType(e.target.value)}
-                  className="w-full pl-10 pr-8 py-3 bg-white border border-[#F5F5DC] rounded-lg text-[#3E2723] focus:border-[#556B2F] focus:outline-none appearance-none cursor-pointer"
+                  className="w-full pl-10 pr-8 py-3 bg-ituka-surface border border-ituka-border rounded-lg text-ituka-ink focus:border-ituka-gold focus:outline-none appearance-none cursor-pointer"
                 >
                   <option value="">Tipo de Piel</option>
                   {skinTypes.map(type => <option key={type} value={type}>{type}</option>)}
@@ -104,16 +104,16 @@ const ProductCatalog = () => {
         {/* Product Grid */}
         {loading ? (
           <div className="flex justify-center py-20">
-             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#556B2F]"></div>
+             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ituka-gold"></div>
           </div>
         ) : error ? (
           <div className="text-center py-20 text-red-500">{error}</div>
         ) : products.length === 0 ? (
-          <div className="text-center py-20 text-[#5D4037]">
+          <div className="text-center py-20 text-ituka-ink-muted">
              <p className="text-xl font-serif">No se encontraron productos.</p>
              <button 
                onClick={() => {setSearch(''); setCategory(''); setSkinType('')}}
-               className="mt-4 text-[#556B2F] underline hover:text-[#3E2723]"
+               className="mt-4 text-ituka-green underline hover:text-ituka-ink"
              >
                Limpiar filtros
              </button>

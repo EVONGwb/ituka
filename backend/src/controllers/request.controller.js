@@ -1,5 +1,6 @@
 import { Order } from '../models/Order.js';
 import { Cart } from '../models/Cart.js';
+import { DEFAULT_SYSTEM_SETTINGS, SYSTEM_SETTINGS_KEY, SystemSettings } from '../models/SystemSettings.js';
 
 // POST /api/requests
 export const createRequest = async (req, res) => {
@@ -23,13 +24,24 @@ export const createRequest = async (req, res) => {
         price: price // Snapshot price
       };
     });
+
+    const systemSettings =
+      (await SystemSettings.findOne({ key: SYSTEM_SETTINGS_KEY })
+        .select('requestsAutoAccept ordersRequireConfirmation')
+        .lean()) || DEFAULT_SYSTEM_SETTINGS;
+
+    const initialStatus = systemSettings.ordersRequireConfirmation === false
+      ? 'confirmado'
+      : systemSettings.requestsAutoAccept
+        ? 'en_conversacion'
+        : 'solicitud_recibida';
     
     const newOrder = await Order.create({
       user: req.user._id,
       items: requestItems,
       total,
       note: note || cart.note, // Use provided note or cart note
-      status: 'solicitud_recibida'
+      status: initialStatus
     });
     
     // Empty the cart

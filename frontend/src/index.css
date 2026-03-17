@@ -1,8 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html {
+  @apply bg-ituka-cream;
+}
 
 body {
   @apply bg-ituka-cream text-ituka-text font-sans;
@@ -10,4 +14,77 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   @apply font-serif;
+}
+
+@layer components {
+  .ituka-btn {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all;
+    @apply shadow-ituka-card hover:shadow-ituka-float active:scale-[0.98];
+    @apply border border-transparent;
+  }
+
+  .ituka-btn-primary {
+    @apply bg-ituka-gold text-ituka-ink border-ituka-gold/20;
+    @apply hover:bg-ituka-gold/90;
+  }
+
+  .ituka-btn-secondary {
+    @apply bg-ituka-surface text-ituka-ink border-ituka-border/70;
+    @apply hover:bg-ituka-cream-soft hover:border-ituka-gold/25;
+  }
+
+  .ituka-btn-danger {
+    @apply bg-ituka-danger-soft text-ituka-danger border-ituka-danger/20;
+    @apply hover:bg-ituka-danger-soft/80;
+  }
+
+  .ituka-btn-olive {
+    @apply bg-ituka-green text-white border-ituka-green/20;
+    @apply hover:bg-ituka-green/90;
+  }
+
+  .ituka-card {
+    @apply bg-ituka-surface rounded-ituka-card border border-ituka-border/70 shadow-ituka-card;
+  }
+
+  .ituka-card-hover {
+    @apply transition-shadow duration-300 hover:shadow-ituka-float;
+  }
+
+  .ituka-panel {
+    @apply bg-ituka-surface rounded-ituka-panel border border-ituka-border/70 shadow-ituka-card;
+  }
+
+  .ituka-panel-hover {
+    @apply transition-shadow duration-300 hover:shadow-ituka-float;
+  }
+
+  .ituka-divider {
+    @apply border-b border-ituka-border/70;
+  }
+
+  .ituka-input {
+    @apply w-full px-4 py-3 rounded-xl border border-ituka-border bg-ituka-cream-soft text-ituka-ink placeholder-ituka-ink/35 outline-none transition-all;
+    @apply focus:border-ituka-gold/70 focus:ring-4 focus:ring-ituka-gold/10;
+  }
+
+  .ituka-select {
+    @apply ituka-input appearance-none cursor-pointer;
+  }
+
+  .ituka-table-shell {
+    @apply bg-ituka-surface rounded-ituka-card border border-ituka-border/70 overflow-hidden shadow-ituka-card;
+  }
+
+  .ituka-table-head {
+    @apply bg-ituka-cream-soft text-ituka-ink/60 text-xs uppercase tracking-wider;
+  }
+
+  .ituka-modal-overlay {
+    @apply fixed inset-0 bg-black/40 backdrop-blur-md;
+  }
+
+  .ituka-modal {
+    @apply ituka-panel shadow-ituka-float;
+  }
 }

@@ -1,15 +1,23 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SectionHeader, ActionButton } from '../../components/admin/ui';
-import { User, Lock, Bell, Shield, LogOut } from 'lucide-react';
+import { Bell, Lock, Shield, SlidersHorizontal, User } from 'lucide-react';
+import { useAdminPreferences } from '../../context/AdminPreferencesContext';
 
 export default function AdminSettings() {
   const [activeTab, setActiveTab] = useState('profile');
+  const { prefs, savePrefs } = useAdminPreferences();
+  const [draft, setDraft] = useState(prefs);
+
+  useEffect(() => {
+    setDraft(prefs);
+  }, [prefs]);
 
   const tabs = [
     { id: 'profile', label: 'Mi Perfil', icon: User },
     { id: 'security', label: 'Seguridad', icon: Lock },
     { id: 'notifications', label: 'Notificaciones', icon: Bell },
     { id: 'team', label: 'Equipo', icon: Shield },
+    { id: 'panel', label: 'Panel', icon: SlidersHorizontal },
   ];
 
   return (
@@ -22,18 +30,18 @@ export default function AdminSettings() {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar de Ajustes */}
         <div className="w-full lg:w-64 flex-shrink-0">
-          <div className="bg-white rounded-[24px] border border-stone-200 p-2 shadow-sm">
+          <div className="ituka-card p-2 dark:bg-[#0F172A] dark:border-white/10">
             {tabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm mb-1 ${
                   activeTab === tab.id 
-                    ? 'bg-[#E8F5E9] text-ituka-green' 
-                    : 'text-stone-500 hover:bg-[#F9F9F7] hover:text-stone-700'
+                    ? 'bg-ituka-success-soft dark:bg-white/10 text-ituka-green dark:text-white' 
+                    : 'text-ituka-muted dark:text-stone-300 hover:bg-ituka-cream-soft dark:hover:bg-white/5 hover:text-ituka-ink dark:hover:text-stone-100'
                 }`}
               >
-                <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'text-ituka-green' : 'text-stone-400'}`} />
+                <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'text-ituka-green dark:text-white' : 'text-stone-400 dark:text-stone-400'}`} />
                 {tab.label}
               </button>
             ))}
@@ -43,9 +51,9 @@ export default function AdminSettings() {
         {/* Contenido Principal */}
         <div className="flex-1">
           {activeTab === 'profile' && (
-            <div className="bg-white p-8 rounded-[24px] border border-stone-200 shadow-sm animate-fade-in">
-              <h3 className="text-xl font-bold text-ituka-text mb-6 flex items-center gap-2">
-                <User className="w-6 h-6 text-stone-300" />
+            <div className="ituka-card p-8 animate-fade-in dark:bg-[#0F172A] dark:border-white/10">
+              <h3 className="text-xl font-bold text-ituka-text dark:text-stone-100 mb-6 flex items-center gap-2">
+                <User className="w-6 h-6 text-stone-300 dark:text-stone-400" />
                 Información Personal
               </h3>
               
@@ -62,66 +70,66 @@ export default function AdminSettings() {
                 <div className="flex-1 space-y-4 max-w-lg">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5">Nombre</label>
-                      <input type="text" defaultValue="Admin User" className="w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-[#F9F9F7] focus:outline-none focus:border-ituka-green" />
+                      <label className="block text-xs font-bold text-stone-500 dark:text-stone-300 uppercase tracking-wide mb-1.5">Nombre</label>
+                      <input type="text" defaultValue="Admin User" className="ituka-input dark:bg-white/5 dark:border-white/10 dark:text-stone-100" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5">Email</label>
-                      <input type="email" defaultValue="admin@ituka.com" className="w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-[#F9F9F7] focus:outline-none focus:border-ituka-green" />
+                      <label className="block text-xs font-bold text-stone-500 dark:text-stone-300 uppercase tracking-wide mb-1.5">Email</label>
+                      <input type="email" defaultValue="admin@ituka.com" className="ituka-input dark:bg-white/5 dark:border-white/10 dark:text-stone-100" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5">Bio</label>
-                    <textarea className="w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-[#F9F9F7] focus:outline-none focus:border-ituka-green h-24 resize-none" defaultValue="Administrador principal de ITUKA Store."></textarea>
+                    <label className="block text-xs font-bold text-stone-500 dark:text-stone-300 uppercase tracking-wide mb-1.5">Bio</label>
+                    <textarea className="ituka-input h-24 resize-none dark:bg-white/5 dark:border-white/10 dark:text-stone-100" defaultValue="Administrador principal de ITUKA Store."></textarea>
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end pt-6 border-t border-stone-100">
+              <div className="flex justify-end pt-6 ituka-divider dark:border-white/10">
                 <ActionButton variant="primary">Guardar Cambios</ActionButton>
               </div>
             </div>
           )}
 
           {activeTab === 'security' && (
-            <div className="bg-white p-8 rounded-[24px] border border-stone-200 shadow-sm animate-fade-in">
-              <h3 className="text-xl font-bold text-ituka-text mb-6 flex items-center gap-2">
-                <Lock className="w-6 h-6 text-stone-300" />
+            <div className="ituka-card p-8 animate-fade-in dark:bg-[#0F172A] dark:border-white/10">
+              <h3 className="text-xl font-bold text-ituka-text dark:text-stone-100 mb-6 flex items-center gap-2">
+                <Lock className="w-6 h-6 text-stone-300 dark:text-stone-400" />
                 Seguridad
               </h3>
               
               <div className="max-w-md space-y-5">
                 <div>
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5">Contraseña Actual</label>
-                  <input type="password" className="w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-[#F9F9F7] focus:outline-none focus:border-ituka-green" />
+                  <label className="block text-xs font-bold text-stone-500 dark:text-stone-300 uppercase tracking-wide mb-1.5">Contraseña Actual</label>
+                  <input type="password" className="ituka-input dark:bg-white/5 dark:border-white/10 dark:text-stone-100" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5">Nueva Contraseña</label>
-                  <input type="password" className="w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-[#F9F9F7] focus:outline-none focus:border-ituka-green" />
+                  <label className="block text-xs font-bold text-stone-500 dark:text-stone-300 uppercase tracking-wide mb-1.5">Nueva Contraseña</label>
+                  <input type="password" className="ituka-input dark:bg-white/5 dark:border-white/10 dark:text-stone-100" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5">Confirmar Contraseña</label>
-                  <input type="password" className="w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-[#F9F9F7] focus:outline-none focus:border-ituka-green" />
+                  <label className="block text-xs font-bold text-stone-500 dark:text-stone-300 uppercase tracking-wide mb-1.5">Confirmar Contraseña</label>
+                  <input type="password" className="ituka-input dark:bg-white/5 dark:border-white/10 dark:text-stone-100" />
                 </div>
               </div>
 
-              <div className="flex justify-end pt-6 mt-8 border-t border-stone-100">
+              <div className="flex justify-end pt-6 mt-8 ituka-divider dark:border-white/10">
                 <ActionButton variant="primary">Actualizar Contraseña</ActionButton>
               </div>
             </div>
           )}
 
           {activeTab === 'notifications' && (
-            <div className="bg-white p-8 rounded-[24px] border border-stone-200 shadow-sm animate-fade-in">
-              <h3 className="text-xl font-bold text-ituka-text mb-6 flex items-center gap-2">
-                <Bell className="w-6 h-6 text-stone-300" />
+            <div className="ituka-card p-8 animate-fade-in dark:bg-[#0F172A] dark:border-white/10">
+              <h3 className="text-xl font-bold text-ituka-text dark:text-stone-100 mb-6 flex items-center gap-2">
+                <Bell className="w-6 h-6 text-stone-300 dark:text-stone-400" />
                 Preferencias de Notificación
               </h3>
               
               <div className="space-y-4">
                 {['Nuevos pedidos', 'Mensajes de clientes', 'Stock bajo', 'Resumen semanal'].map((item, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-stone-100 hover:bg-[#F9F9F7] transition-colors">
-                    <span className="font-medium text-stone-700">{item}</span>
+                  <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-ituka-border/70 dark:border-white/10 hover:bg-ituka-cream-soft dark:hover:bg-white/5 transition-colors">
+                    <span className="font-medium text-stone-700 dark:text-stone-100">{item}</span>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" defaultChecked className="sr-only peer" />
                       <div className="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ituka-green"></div>
@@ -133,14 +141,109 @@ export default function AdminSettings() {
           )}
           
           {activeTab === 'team' && (
-             <div className="text-center py-16 bg-white rounded-[24px] border border-stone-200 flex flex-col items-center justify-center">
-               <div className="bg-stone-50 p-6 rounded-full mb-4">
-                 <Shield className="w-12 h-12 text-stone-300" />
+             <div className="ituka-card py-16 px-8 text-center flex flex-col items-center justify-center dark:bg-[#0F172A] dark:border-white/10">
+               <div className="bg-ituka-cream-soft dark:bg-white/5 p-6 rounded-full mb-4">
+                 <Shield className="w-12 h-12 text-ituka-ink/25 dark:text-stone-400" />
                </div>
-               <h3 className="text-lg font-bold text-stone-600 mb-1">Gestión de Equipo</h3>
-               <p className="text-stone-400 text-sm max-w-sm mx-auto mb-6">Próximamente podrás invitar a otros administradores y asignar roles.</p>
+               <h3 className="text-lg font-bold text-ituka-ink dark:text-stone-100 mb-1">Gestión de Equipo</h3>
+               <p className="text-ituka-ink/45 text-sm max-w-sm mx-auto mb-6">Próximamente podrás invitar a otros administradores y asignar roles.</p>
                <ActionButton variant="secondary">Solicitar Acceso Beta</ActionButton>
              </div>
+          )}
+
+          {activeTab === 'panel' && (
+            <div className="ituka-card p-8 animate-fade-in dark:bg-[#0F172A] dark:border-white/10">
+              <h3 className="text-xl font-bold text-ituka-text dark:text-stone-100 mb-6 flex items-center gap-2">
+                <SlidersHorizontal className="w-6 h-6 text-stone-300 dark:text-stone-400" />
+                Preferencias del panel
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-stone-500 dark:text-stone-300 uppercase tracking-wide mb-1.5">Tema</label>
+                  <select
+                    value={draft.theme}
+                    onChange={(e) => setDraft((p) => ({ ...p, theme: e.target.value }))}
+                    className="ituka-select dark:bg-white/5 dark:border-white/10 dark:text-stone-100"
+                  >
+                    <option value="system">Sistema</option>
+                    <option value="light">Claro</option>
+                    <option value="dark">Oscuro</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-stone-500 dark:text-stone-300 uppercase tracking-wide mb-1.5">Idioma</label>
+                  <select
+                    value={draft.language}
+                    onChange={(e) => setDraft((p) => ({ ...p, language: e.target.value }))}
+                    className="ituka-select dark:bg-white/5 dark:border-white/10 dark:text-stone-100"
+                  >
+                    <option value="es">Español</option>
+                    <option value="en">English</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-stone-500 dark:text-stone-300 uppercase tracking-wide mb-1.5">Formato de fecha</label>
+                  <select
+                    value={draft.dateFormat}
+                    onChange={(e) => setDraft((p) => ({ ...p, dateFormat: e.target.value }))}
+                    className="ituka-select dark:bg-white/5 dark:border-white/10 dark:text-stone-100"
+                  >
+                    <option value="DMY">DD/MM/AAAA</option>
+                    <option value="MDY">MM/DD/AAAA</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-stone-500 dark:text-stone-300 uppercase tracking-wide mb-1.5">Formato de hora</label>
+                  <select
+                    value={draft.timeFormat}
+                    onChange={(e) => setDraft((p) => ({ ...p, timeFormat: e.target.value }))}
+                    className="ituka-select dark:bg-white/5 dark:border-white/10 dark:text-stone-100"
+                  >
+                    <option value="24h">24h</option>
+                    <option value="12h">12h</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-8">
+                <p className="text-xs font-bold text-stone-500 dark:text-stone-300 uppercase tracking-wide mb-3">Notificaciones del panel</p>
+                <div className="space-y-3">
+                  {[
+                    { key: 'newOrders', label: 'Nuevos pedidos' },
+                    { key: 'newMessages', label: 'Mensajes de clientes' },
+                    { key: 'weeklySummary', label: 'Resumen semanal' }
+                  ].map((i) => (
+                    <div key={i.key} className="flex items-center justify-between p-4 rounded-xl border border-ituka-border/70 dark:border-white/10 hover:bg-ituka-cream-soft dark:hover:bg-white/5 transition-colors">
+                      <span className="font-medium text-stone-700 dark:text-stone-100">{i.label}</span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(draft.panelNotifications?.[i.key])}
+                          onChange={(e) =>
+                            setDraft((p) => ({
+                              ...p,
+                              panelNotifications: { ...(p.panelNotifications || {}), [i.key]: e.target.checked }
+                            }))
+                          }
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ituka-green"></div>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-6 mt-8 border-t border-stone-100 dark:border-white/10">
+                <ActionButton variant="primary" onClick={() => savePrefs(draft)}>
+                  Guardar preferencias
+                </ActionButton>
+              </div>
+            </div>
           )}
         </div>
       </div>

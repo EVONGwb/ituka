@@ -17,8 +17,12 @@ import {
 } from 'lucide-react';
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { StatCard, SectionHeader, ActionButton, SearchInput } from '../../components/admin/ui';
+import { useAdminPreferences } from '../../context/AdminPreferencesContext';
+import { formatDate } from '../../lib/adminDateFormat';
+import { ITUKA_PALETTE } from '../../styles/itukaPalette';
 
 export default function AdminDashboard() {
+  const { prefs } = useAdminPreferences();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -40,46 +44,48 @@ export default function AdminDashboard() {
 
   if (loading) return (
     <div className="flex justify-center items-center h-96">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#c5a25a]"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ituka-gold"></div>
     </div>
   );
   
   if (error) return <div className="text-red-500">Error: {error}</div>;
 
   const kpiCards = [
-    { label: 'Solicitudes Nuevas', value: stats.newRequests, icon: FileText, color: 'text-ituka-green', bg: 'bg-[#E8F5E9]', link: '/admin/requests', trend: 12 },
-    { label: 'Pedidos Activos', value: stats.activeOrders, icon: ShoppingBag, color: 'text-ituka-gold', bg: 'bg-[#FFF8E1]', link: '/admin/orders', trend: 5 },
-    { label: 'Productos', value: stats.totalProducts, icon: Package, color: 'text-stone-600', bg: 'bg-stone-100', link: '/admin/products', trend: 0 },
-    { label: 'Mensajes', value: stats.pendingMessages, icon: MessageSquare, color: 'text-red-500', bg: 'bg-red-50', link: '/admin/chats', trend: -2 },
-    { label: 'Clientes', value: stats.totalClients, icon: Users, color: 'text-teal-600', bg: 'bg-teal-50', link: '/admin/clients', trend: 8 },
-    { label: 'Ventas Mes', value: `$${stats.salesMonth}`, icon: DollarSign, color: 'text-ituka-green', bg: 'bg-[#E8F5E9]', link: '/admin/orders', trend: 15 },
+    { label: 'Solicitudes Nuevas', value: stats.newRequests, icon: FileText, color: 'text-ituka-gold', bg: 'bg-ituka-gold/10', link: '/admin/requests', trend: 12 },
+    { label: 'Pedidos Activos', value: stats.activeOrders, icon: ShoppingBag, color: 'text-ituka-gold', bg: 'bg-ituka-gold/10', link: '/admin/orders', trend: 5 },
+    { label: 'Productos', value: stats.totalProducts, icon: Package, color: 'text-ituka-gold', bg: 'bg-ituka-gold/10', link: '/admin/products', trend: 0 },
+    { label: 'Mensajes', value: stats.pendingMessages, icon: MessageSquare, color: 'text-ituka-gold', bg: 'bg-ituka-gold/10', link: '/admin/chats', trend: -2 },
+    { label: 'Clientes', value: stats.totalClients, icon: Users, color: 'text-ituka-gold', bg: 'bg-ituka-gold/10', link: '/admin/clients', trend: 8 },
+    { label: 'Ventas Mes', value: `$${stats.salesMonth}`, icon: DollarSign, color: 'text-ituka-gold', bg: 'bg-ituka-gold/10', link: '/admin/orders', trend: 15 },
   ];
 
   return (
     <div>
       {/* Header del Dashboard */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6 border-b border-stone-100 pb-8">
-        <div>
-          <h2 className="text-[32px] font-serif font-bold text-ituka-text tracking-tight">Dashboard</h2>
-          <p className="text-stone-500 text-base mt-1 font-light">Resumen general de tu negocio</p>
-        </div>
-        
-        <div className="flex items-center gap-6 w-full md:w-auto">
-          <div className="hidden md:block w-64">
-            <SearchInput placeholder="Buscar cliente, pedido..." />
+      <div className="ituka-card p-6 mb-10">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div>
+            <h2 className="text-[32px] font-serif font-bold text-ituka-text tracking-tight">Dashboard</h2>
+            <p className="text-ituka-ink/55 text-base mt-1 font-light">Resumen general de tu negocio</p>
           </div>
-          
-          <div className="flex items-center gap-4 border-l border-stone-100 pl-6">
-            <button className="relative p-2 text-stone-400 hover:text-ituka-green transition-colors">
-              <Bell className="w-6 h-6" />
-              <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
-            
-            <Link to="/admin/settings" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center border border-stone-200 group-hover:border-ituka-green transition-colors overflow-hidden">
-                 <img src="https://ui-avatars.com/api/?name=Admin&background=random" alt="Admin" className="w-full h-full object-cover" />
-              </div>
-            </Link>
+
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            <div className="flex-1 md:flex-none md:w-72">
+              <SearchInput placeholder="Buscar cliente, pedido..." />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button className="relative p-2 rounded-full text-ituka-ink/45 hover:text-ituka-gold transition-colors hover:bg-ituka-cream-soft">
+                <Bell className="w-5 h-5" strokeWidth={1.5} />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-ituka-danger rounded-full border-2 border-white"></span>
+              </button>
+
+              <Link to="/admin/settings" className="flex items-center gap-3 group">
+                <div className="w-10 h-10 rounded-full bg-ituka-cream-soft flex items-center justify-center border border-ituka-border/70 group-hover:border-ituka-gold/30 transition-colors overflow-hidden shadow-ituka-card">
+                  <img src="https://ui-avatars.com/api/?name=Admin&background=random" alt="Admin" className="w-full h-full object-cover" />
+                </div>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -111,35 +117,35 @@ export default function AdminDashboard() {
       {/* Fila 2: Actividad y Ventas */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         {/* Actividad Reciente */}
-        <div className="lg:col-span-2 bg-white p-8 rounded-[24px] shadow-sm hover:shadow-md transition-shadow duration-300 border border-stone-100">
+        <div className="lg:col-span-2 ituka-card ituka-card-hover p-8">
           <div className="flex justify-between items-center mb-8">
             <h3 className="font-bold text-ituka-text text-xl flex items-center gap-2 font-serif">
-              <Clock className="w-6 h-6 text-ituka-gold" />
+              <Clock className="w-6 h-6 text-ituka-gold" strokeWidth={1.5} />
               Actividad Reciente
             </h3>
             <Link to="/admin/orders" className="text-sm text-ituka-green hover:text-ituka-green/80 flex items-center gap-1 font-bold transition-colors">
-              Ver historial <ArrowRight className="w-4 h-4" />
+              Ver historial <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
             </Link>
           </div>
           
-          <div className="relative border-l-2 border-stone-100 ml-3 space-y-8 pl-8 pb-2">
+          <div className="relative border-l-2 border-ituka-border/70 ml-3 space-y-8 pl-8 pb-2">
             {stats.recentActivity.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
-                <div className="w-12 h-12 bg-stone-50 rounded-full flex items-center justify-center mb-3">
-                  <Clock className="w-6 h-6 text-stone-300" />
+                <div className="w-12 h-12 bg-ituka-cream-soft rounded-full flex items-center justify-center mb-3 border border-ituka-border/70">
+                  <Clock className="w-6 h-6 text-ituka-ink/25" strokeWidth={1.5} />
                 </div>
-                <p className="text-stone-400 font-medium">No hay actividad reciente.</p>
-                <p className="text-stone-400 text-xs mt-1 px-4">Las acciones que realices aparecerán aquí en orden cronológico.</p>
+                <p className="text-ituka-ink/45 font-medium">No hay actividad reciente.</p>
+                <p className="text-ituka-ink/40 text-xs mt-1 px-4">Las acciones que realices aparecerán aquí en orden cronológico.</p>
               </div>
             ) : (
               stats.recentActivity.slice(0, 5).map((activity, i) => (
                 <div key={i} className="relative group">
                   {/* Timeline Dot */}
-                  <div className={`absolute -left-[41px] top-1 w-6 h-6 rounded-full border-4 border-white shadow-sm flex items-center justify-center transition-transform group-hover:scale-110
+                  <div className={`absolute -left-[41px] top-1 w-6 h-6 rounded-full border-4 border-white shadow-ituka-card flex items-center justify-center transition-transform group-hover:scale-110
                     ${activity.type === 'order' ? 'bg-ituka-gold' : 
-                      activity.type === 'message' ? 'bg-blue-500' : 
-                      activity.type === 'client' ? 'bg-teal-500' :
-                      'bg-purple-500'}`}>
+                      activity.type === 'message' ? 'bg-ituka-info' : 
+                      activity.type === 'client' ? 'bg-ituka-success' :
+                      'bg-ituka-warning'}`}>
                   </div>
                   
                   <Link 
@@ -153,19 +159,19 @@ export default function AdminDashboard() {
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="font-bold text-ituka-text text-base group-hover:text-ituka-green transition-colors">{activity.title}</p>
-                        <p className="text-sm text-stone-500 mt-1">
-                          <span className="font-semibold text-stone-700">{activity.user}</span> • {activity.description}
+                        <p className="font-bold text-ituka-text text-base group-hover:text-ituka-gold transition-colors">{activity.title}</p>
+                        <p className="text-sm text-ituka-ink/55 mt-1">
+                          <span className="font-semibold text-ituka-ink">{activity.user}</span> • {activity.description}
                         </p>
                       </div>
-                      <span className="text-xs font-medium text-stone-400 bg-stone-50 px-2 py-1 rounded-lg group-hover:bg-stone-100 transition-colors">
+                      <span className="text-xs font-medium text-ituka-ink/45 bg-ituka-cream-soft px-2 py-1 rounded-lg border border-ituka-border/70 group-hover:border-ituka-gold/20 group-hover:bg-ituka-cream transition-colors">
                         {(() => {
                             const date = new Date(activity.date);
                             const now = new Date();
                             const diff = Math.floor((now - date) / 60000); // minutos
                             if (diff < 60) return `hace ${diff} min`;
                             if (diff < 1440) return `hace ${Math.floor(diff/60)} h`;
-                            return date.toLocaleDateString();
+                            return formatDate(date, prefs);
                         })()}
                       </span>
                     </div>
@@ -177,15 +183,15 @@ export default function AdminDashboard() {
         </div>
 
         {/* Bloque lateral de Últimas Solicitudes (Real) */}
-        <div className="bg-white p-8 rounded-[24px] shadow-sm hover:shadow-md transition-shadow duration-300 border border-stone-100 flex flex-col">
+        <div className="ituka-card ituka-card-hover p-8 flex flex-col">
             <div className="flex justify-between items-center mb-6">
                <div className="flex items-center gap-3">
-                 <div className="p-3 bg-ituka-green/10 rounded-full">
-                    <FileText className="w-6 h-6 text-ituka-green" />
+                 <div className="p-3 bg-ituka-gold/10 rounded-full border border-ituka-border/70 shadow-ituka-inset">
+                    <FileText className="w-6 h-6 text-ituka-gold" strokeWidth={1.5} />
                  </div>
                  <h3 className="font-bold text-ituka-text text-lg font-serif">Últimas Solicitudes</h3>
                </div>
-               <Link to="/admin/requests" className="text-sm font-bold text-ituka-green hover:underline">
+               <Link to="/admin/requests" className="text-sm font-bold text-ituka-gold hover:text-ituka-gold/90 transition-colors">
                  Ver todas
                </Link>
             </div>
@@ -196,13 +202,13 @@ export default function AdminDashboard() {
                    <Link 
                      key={i} 
                      to={`/admin/requests?search=${req.id.slice(-6)}`}
-                     className="flex items-center justify-between p-3 hover:bg-stone-50 rounded-xl transition-all border border-transparent hover:border-stone-100 group cursor-pointer"
+                     className="flex items-center justify-between p-3 hover:bg-ituka-cream-soft rounded-xl transition-all border border-transparent hover:border-ituka-border/70 group cursor-pointer"
                    >
                      <div>
-                       <p className="font-bold text-stone-700 text-sm group-hover:text-ituka-text">{req.user}</p>
-                       <p className="text-xs text-stone-500 mt-0.5 flex items-center gap-1">
-                         <span className="font-medium text-stone-600">{req.product}</span>
-                         {req.totalItems > 1 && <span className="text-[10px] bg-stone-100 px-1.5 rounded-full text-stone-500 group-hover:bg-white transition-colors">+{req.totalItems - 1}</span>}
+                       <p className="font-bold text-ituka-ink text-sm group-hover:text-ituka-gold transition-colors">{req.user}</p>
+                       <p className="text-xs text-ituka-ink/55 mt-0.5 flex items-center gap-1">
+                         <span className="font-medium text-ituka-ink-muted">{req.product}</span>
+                         {req.totalItems > 1 && <span className="text-[10px] bg-ituka-cream-deep px-1.5 rounded-full text-ituka-ink/55 group-hover:bg-white transition-colors">+{req.totalItems - 1}</span>}
                        </p>
                      </div>
                      <span className="px-2 py-1 rounded-lg bg-ituka-gold/10 text-ituka-gold text-[10px] font-bold uppercase tracking-wide group-hover:bg-ituka-gold group-hover:text-white transition-all">
@@ -212,20 +218,20 @@ export default function AdminDashboard() {
                  ))
                ) : (
                  <div className="flex flex-col items-center justify-center py-12 text-center h-full">
-                   <div className="w-16 h-16 bg-stone-50 rounded-full flex items-center justify-center mb-4 animate-pulse">
-                     <FileText className="w-8 h-8 text-stone-300" />
+                   <div className="w-16 h-16 bg-ituka-cream-soft rounded-full flex items-center justify-center mb-4 border border-ituka-border/70 animate-pulse">
+                     <FileText className="w-8 h-8 text-ituka-ink/25" strokeWidth={1.5} />
                    </div>
-                   <p className="text-stone-500 font-bold mb-1">Aún no hay solicitudes</p>
-                   <p className="text-stone-400 text-xs px-6">
+                   <p className="text-ituka-ink/55 font-bold mb-1">Aún no hay solicitudes</p>
+                   <p className="text-ituka-ink/40 text-xs px-6">
                      Cuando los clientes envíen solicitudes aparecerán aquí.
                    </p>
                  </div>
                )}
             </div>
             
-            <div className="mt-auto pt-6 border-t border-stone-100 text-center">
-               <Link to="/admin/requests" className="inline-flex items-center gap-2 px-4 py-2 bg-ituka-green text-white rounded-xl text-sm font-bold hover:bg-ituka-green/90 hover:shadow-lg hover:-translate-y-0.5 transition-all w-full justify-center shadow-md shadow-ituka-green/20">
-                 Gestionar Solicitudes <ArrowRight className="w-4 h-4" />
+            <div className="mt-auto pt-6 ituka-divider text-center">
+               <Link to="/admin/requests" className="ituka-btn ituka-btn-primary w-full">
+                 Gestionar Solicitudes <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
                </Link>
             </div>
         </div>
@@ -234,60 +240,62 @@ export default function AdminDashboard() {
       {/* Fila 3: Analítica (Paso 7) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         {/* Gráfico de Solicitudes Semanales */}
-        <div className="lg:col-span-2 bg-white p-8 rounded-[24px] shadow-sm border border-stone-100">
+        <div className="lg:col-span-2 ituka-card p-8">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-ituka-text text-xl font-serif flex items-center gap-2">
-              <TrendingUp className="w-6 h-6 text-ituka-green" />
+              <TrendingUp className="w-6 h-6 text-ituka-gold" strokeWidth={1.5} />
               Solicitudes de la Semana
             </h3>
-            <span className="text-xs font-bold text-stone-400 bg-stone-50 px-3 py-1.5 rounded-full border border-stone-100">Últimos 7 días</span>
+            <span className="text-xs font-bold text-ituka-ink/45 bg-ituka-cream-soft px-3 py-1.5 rounded-full border border-ituka-border/70">Últimos 7 días</span>
           </div>
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats.requestsByDay}>
                 <defs>
                   <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#c5a25a" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#c5a25a" stopOpacity={0}/>
+                    <stop offset="5%" stopColor={ITUKA_PALETTE.gold} stopOpacity={0.18}/>
+                    <stop offset="95%" stopColor={ITUKA_PALETTE.gold} stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <XAxis 
                   dataKey="_id" 
-                  tick={{fontSize: 12, fill: '#78716c', fontWeight: 500}} 
-                  stroke="#E7E5E4" 
+                  tick={{fontSize: 12, fill: ITUKA_PALETTE.stone400, fontWeight: 500}} 
+                  stroke={ITUKA_PALETTE.stone200} 
                   axisLine={false} 
                   tickLine={false} 
                   dy={10} 
                   tickFormatter={(val) => {
                     const d = new Date(val);
-                    return d.toLocaleDateString('es-ES', { weekday: 'short' });
+                    const locale = prefs.language === 'en' ? 'en-US' : 'es-ES';
+                    if (Number.isNaN(d.getTime())) return '';
+                    return new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(d);
                   }}
                 />
-                <YAxis tick={{fontSize: 12, fill: '#78716c', fontWeight: 500}} stroke="#E7E5E4" axisLine={false} tickLine={false} dx={-10} />
+                <YAxis tick={{fontSize: 12, fill: ITUKA_PALETTE.stone400, fontWeight: 500}} stroke={ITUKA_PALETTE.stone200} axisLine={false} tickLine={false} dx={-10} />
                 <Tooltip 
-                  contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', padding: '16px', backgroundColor: '#fff'}}
-                  itemStyle={{color: '#c5a25a', fontWeight: 'bold'}}
-                  labelStyle={{color: '#44403c', marginBottom: '4px', fontWeight: 'bold'}}
-                  cursor={{stroke: '#e7e5e4', strokeWidth: 2, strokeDasharray: '4 4'}}
+                  contentStyle={{borderRadius: '16px', border: `1px solid ${ITUKA_PALETTE.border}`, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', padding: '16px', backgroundColor: '#fff'}}
+                  itemStyle={{color: ITUKA_PALETTE.gold, fontWeight: 'bold'}}
+                  labelStyle={{color: ITUKA_PALETTE.ink, marginBottom: '4px', fontWeight: 'bold'}}
+                  cursor={{stroke: ITUKA_PALETTE.stone200, strokeWidth: 2, strokeDasharray: '4 4'}}
                 />
-                <Area type="monotone" dataKey="count" name="Solicitudes" stroke="#c5a25a" strokeWidth={4} fillOpacity={1} fill="url(#colorCount)" />
+                <Area type="monotone" dataKey="count" name="Solicitudes" stroke={ITUKA_PALETTE.gold} strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-6 grid grid-cols-2 gap-4 border-t border-stone-100 pt-6">
+          <div className="mt-6 grid grid-cols-2 gap-4 ituka-divider pt-6">
             <div className="text-center">
-              <p className="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Total Semana</p>
+              <p className="text-[10px] uppercase tracking-widest text-ituka-ink/45 font-bold">Total Semana</p>
               <p className="text-2xl font-bold text-ituka-text">{stats.requestsByDay.reduce((acc, curr) => acc + curr.count, 0)}</p>
             </div>
-            <div className="text-center border-l border-stone-100">
-              <p className="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Promedio Diario</p>
+            <div className="text-center border-l border-ituka-border/70">
+              <p className="text-[10px] uppercase tracking-widest text-ituka-ink/45 font-bold">Promedio Diario</p>
               <p className="text-2xl font-bold text-ituka-text">{(stats.requestsByDay.reduce((acc, curr) => acc + curr.count, 0) / 7).toFixed(1)}</p>
             </div>
           </div>
         </div>
 
         {/* Top Productos Más Solicitados */}
-        <div className="bg-white p-8 rounded-[24px] shadow-sm border border-stone-100 flex flex-col">
+        <div className="ituka-card p-8 flex flex-col">
           <h3 className="font-bold text-ituka-text text-xl mb-8 flex items-center gap-2 font-serif">
             <Package className="w-6 h-6 text-stone-300" />
             Productos Más Solicitados
@@ -328,7 +336,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Fila 4: Accesos Rápidos (Paso 8) */}
-      <div className="bg-white p-8 rounded-[24px] shadow-sm border border-stone-100">
+      <div className="ituka-card p-8">
         <h3 className="font-bold text-ituka-text text-xl mb-8 font-serif flex items-center gap-2">
           <TrendingUp className="w-6 h-6 text-ituka-gold" />
           Accesos Rápidos

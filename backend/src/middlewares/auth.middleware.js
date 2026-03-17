@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
+import { hasPermission } from '../config/permissions.js';
 
 export const verifyToken = (req, res, next) => {
   try {
@@ -31,4 +32,31 @@ export const admin = (req, res, next) => {
   } else {
     return res.status(403).json({ message: 'Acceso denegado. Se requieren permisos de administrador.' });
   }
+};
+
+export const allowRoles = (...roles) => {
+  return (req, res, next) => {
+    if (req.user && roles.includes(req.user.role)) return next();
+    return res.status(403).json({ message: 'Acceso denegado.' });
+  };
+};
+
+export const allowPermissions = (...permissions) => {
+  return (req, res, next) => {
+    const role = req.user?.role;
+    if (!role) return res.status(401).json({ message: 'Acceso no autorizado.' });
+    const ok = permissions.every((p) => hasPermission(role, p));
+    if (ok) return next();
+    return res.status(403).json({ message: 'Acceso denegado.' });
+  };
+};
+
+export const allowAnyPermissions = (...permissions) => {
+  return (req, res, next) => {
+    const role = req.user?.role;
+    if (!role) return res.status(401).json({ message: 'Acceso no autorizado.' });
+    const ok = permissions.some((p) => hasPermission(role, p));
+    if (ok) return next();
+    return res.status(403).json({ message: 'Acceso denegado.' });
+  };
 };

@@ -1,6 +1,8 @@
 import { Order } from '../models/Order.js';
 import { Product } from '../models/Product.js';
 import mongoose from 'mongoose';
+import { hasPermission } from '../config/permissions.js';
+import { DEFAULT_SYSTEM_SETTINGS, SYSTEM_SETTINGS_KEY, SystemSettings } from '../models/SystemSettings.js';
 
 export const getOrders = async (req, res) => {
   try {
@@ -30,7 +32,7 @@ export const getOrder = async (req, res) => {
     if (!order) return res.status(404).json({ message: 'Order not found' });
     
     // Check authorization
-    if (req.user.role !== 'admin' && order.user._id.toString() !== req.user._id.toString()) {
+    if (req.user.role === 'customer' && order.user._id.toString() !== req.user._id.toString()) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
@@ -46,6 +48,21 @@ export const createOrder = async (req, res) => {
     const userId = (req.user?.id || req.user?._id || '').toString();
     if (!userId) return res.status(401).json({ message: 'Acceso no autorizado' });
     if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ message: 'Items inválidos' });
+
+    const systemSettings =
+      (await SystemSettings.findOne({ key: SYSTEM_SETTINGS_KEY })
+        .select('requestsAutoAccept ordersRequireConfirmation deliveryMethodsEnabled paymentMethodsEnabled')
+        .lean()) || DEFAULT_SYSTEM_SETTINGS;
+
+    const enabledPayment = Array.isArray(systemSettings.paymentMethodsEnabled) ? systemSettings.paymentMethodsEnabled : DEFAULT_SYSTEM_SETTINGS.paymentMethodsEnabled;
+    const enabledDelivery = Array.isArray(systemSettings.deliveryMethodsEnabled) ? systemSettings.deliveryMethodsEnabled : DEFAULT_SYSTEM_SETTINGS.deliveryMethodsEnabled;
+
+    if (paymentMethod && paymentMethod !== 'pendiente' && !enabledPayment.includes(paymentMethod)) {
+      return res.status(400).json({ message: 'Método de pago no permitido' });
+    }
+    if (deliveryMethod && deliveryMethod !== 'pendiente' && !enabledDelivery.includes(deliveryMethod)) {
+      return res.status(400).json({ message: 'Método de entrega no permitido' });
+    }
 
     const normalized = new Map();
     for (const item of items) {
@@ -75,6 +92,12 @@ export const createOrder = async (req, res) => {
 
     const total = orderItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
+    const initialStatus = systemSettings.ordersRequireConfirmation === false
+      ? 'confirmado'
+      : systemSettings.requestsAutoAccept
+        ? 'en_conversacion'
+        : 'solicitud_recibida';
+
     const order = new Order({
       user: userId,
       items: orderItems,
@@ -82,7 +105,7 @@ export const createOrder = async (req, res) => {
       note,
       paymentMethod,
       deliveryMethod,
-      status: 'solicitud_recibida'
+      status: initialStatus
     });
     await order.save();
     res.status(201).json(order);
@@ -94,11 +117,22 @@ export const createOrder = async (req, res) => {
 export const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const order = await Order.findByIdAndUpdate(
-      req.params.id, 
-      { status }, 
-      { new: true }
-    );
+    const role = req.user?.role;
+    const canUpdateOrders = hasPermission(role, 'orders:update');
+    const canUpdateRequests = hasPermission(role, 'requests:update');
+
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    if (!canUpdateOrders && canUpdateRequests) {
+      const allowed = new Set(['solicitud_recibida', 'en_conversacion']);
+      if (!allowed.has(order.status) || !allowed.has(status)) {
+        return res.status(403).json({ message: 'Acceso denegado.' });
+      }
+    }
+
+    order.status = status;
+    await order.save();
     if (!order) return res.status(404).json({ message: 'Order not found' });
     res.json(order);
   } catch (error) {

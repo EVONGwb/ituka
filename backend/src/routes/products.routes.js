@@ -7,7 +7,7 @@ import {
   updateProduct, 
   deleteProduct 
 } from '../controllers/product.controller.js';
-import { protect, admin } from '../middlewares/auth.middleware.js';
+import { protect, allowPermissions } from '../middlewares/auth.middleware.js';
 import { upload } from '../config/cloudinary.js';
 
 const router = express.Router();
@@ -22,12 +22,12 @@ const maybeUploadImages = (req, res, next) => {
 
 // Public routes
 router.get('/', getProducts);
-router.get('/admin', protect, admin, getAdminProducts);
+router.get('/admin', protect, allowPermissions('products:read'), getAdminProducts);
 router.get('/:id', getProduct);
 
 // Admin routes
-router.post('/', protect, admin, maybeUploadImages, createProduct);
-router.put('/:id', protect, admin, maybeUploadImages, updateProduct);
-router.delete('/:id', protect, admin, deleteProduct);
+router.post('/', protect, allowPermissions('products:write'), maybeUploadImages, createProduct);
+router.put('/:id', protect, allowPermissions('products:write'), maybeUploadImages, updateProduct);
+router.delete('/:id', protect, allowPermissions('products:delete'), deleteProduct);
 
 export default router;

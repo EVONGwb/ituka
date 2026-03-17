@@ -2,8 +2,14 @@ import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { Plus, Edit, Trash, X, Eye, EyeOff, Star, Image as ImageIcon, Search, Package } from 'lucide-react';
 import { SectionHeader, SearchInput, ActionButton, EmptyState, StatusBadge } from '../../components/admin/ui';
+import { useAuth } from '../../context/AuthContext';
+import { can } from '../../lib/permissions';
 
 export default function AdminProducts() {
+  const { user } = useAuth();
+  const role = user?.role;
+  const canWrite = can(role, 'products:write');
+  const canDelete = can(role, 'products:delete');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -179,18 +185,20 @@ export default function AdminProducts() {
         title="Productos" 
         description="Gestiona inventario, categorías y visibilidad"
         action={
-          <ActionButton 
-            onClick={() => { resetForm(); setModalOpen(true); }} 
-            icon={Plus}
-            variant="primary"
-          >
-            Añadir producto
-          </ActionButton>
+          canWrite ? (
+            <ActionButton 
+              onClick={() => { resetForm(); setModalOpen(true); }} 
+              icon={Plus}
+              variant="primary"
+            >
+              Añadir producto
+            </ActionButton>
+          ) : null
         }
       />
 
       {/* Nivel 2: Filtros y Búsqueda */}
-      <div className="bg-white p-6 rounded-[24px] border border-stone-200 mb-8 flex flex-col md:flex-row gap-4 shadow-sm items-center">
+      <div className="ituka-card p-6 mb-8 flex flex-col md:flex-row gap-4 items-center">
         <SearchInput 
           value={searchTerm} 
           onChange={(e) => setSearchTerm(e.target.value)} 
@@ -201,7 +209,7 @@ export default function AdminProducts() {
           <select 
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="px-4 py-3 border border-stone-200 rounded-xl text-sm bg-white text-stone-600 focus:outline-none focus:border-ituka-green shadow-sm"
+            className="ituka-select px-4 py-3 text-sm bg-ituka-surface text-ituka-ink-muted shadow-ituka-card"
           >
             <option value="all">Todas las categorías</option>
             {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
@@ -210,7 +218,7 @@ export default function AdminProducts() {
           <select 
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-3 border border-stone-200 rounded-xl text-sm bg-white text-stone-600 focus:outline-none focus:border-ituka-green shadow-sm"
+            className="ituka-select px-4 py-3 text-sm bg-ituka-surface text-ituka-ink-muted shadow-ituka-card"
           >
             <option value="all">Todos los estados</option>
             <option value="active">Activos</option>
@@ -219,7 +227,7 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      <div className="bg-white rounded-[24px] shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] border border-stone-100 overflow-hidden hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.08)] transition-shadow duration-300">
+      <div className="ituka-table-shell ituka-card-hover">
         {loading ? (
           <div className="p-12 text-center text-stone-500">Cargando catálogo...</div>
         ) : products.length === 0 ? (
@@ -229,13 +237,15 @@ export default function AdminProducts() {
               title="No hay productos publicados."
               description="Pulsa Añadir producto para crear el primer producto de ITUKA."
               action={
-                <ActionButton
-                  onClick={() => { resetForm(); setModalOpen(true); }}
-                  icon={Plus}
-                  variant="primary"
-                >
-                  Añadir producto
-                </ActionButton>
+                canWrite ? (
+                  <ActionButton
+                    onClick={() => { resetForm(); setModalOpen(true); }}
+                    icon={Plus}
+                    variant="primary"
+                  >
+                    Añadir producto
+                  </ActionButton>
+                ) : null
               }
             />
           </div>
@@ -248,7 +258,7 @@ export default function AdminProducts() {
             />
           </div>
         ) : (
-          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 bg-[#FAFAF9]">
+          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 bg-ituka-cream-soft">
             {filteredProducts.map(product => {
               const category = String(product.category || '');
               const name = String(product.name || 'Producto');
@@ -257,7 +267,7 @@ export default function AdminProducts() {
               return (
                 <div
                   key={product._id}
-                  className="bg-white rounded-[24px] border border-stone-200 shadow-sm hover:shadow-[0_10px_30px_-12px_rgba(0,0,0,0.15)] transition-all overflow-hidden group"
+                  className="ituka-card ituka-card-hover transition-transform hover:-translate-y-0.5 overflow-hidden group"
                 >
                   <div className="relative h-44 bg-stone-50 border-b border-stone-100 overflow-hidden">
                     {product.images?.[0] ? (
@@ -269,36 +279,42 @@ export default function AdminProducts() {
                     )}
 
                     <div className="absolute top-3 right-3 flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => openEdit(product)}
-                        className="p-2 bg-white/95 border border-stone-200 text-stone-500 hover:text-ituka-green hover:border-ituka-green/30 rounded-xl shadow-sm transition-colors"
-                        title="Editar producto"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => toggleStatus(product)}
-                        className="p-2 bg-white/95 border border-stone-200 text-stone-500 hover:text-stone-700 rounded-xl shadow-sm transition-colors"
-                        title={product.isActive ? 'Ocultar producto' : 'Activar producto'}
-                      >
-                        {product.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                      <button
-                        onClick={() => toggleFeatured(product)}
-                        className={`p-2 bg-white/95 border border-stone-200 rounded-xl shadow-sm transition-colors ${
-                          product.isFeatured ? 'text-ituka-gold border-ituka-gold/30' : 'text-stone-400 hover:text-stone-600'
-                        }`}
-                        title={product.isFeatured ? 'Quitar destacado' : 'Destacar producto'}
-                      >
-                        <Star className={`w-4 h-4 ${product.isFeatured ? 'fill-current' : ''}`} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(product._id)}
-                        className="p-2 bg-white/95 border border-stone-200 text-stone-400 hover:text-red-600 hover:border-red-200 rounded-xl shadow-sm transition-colors"
-                        title="Eliminar producto"
-                      >
-                        <Trash className="w-4 h-4" />
-                      </button>
+                      {canWrite && (
+                        <>
+                          <button
+                            onClick={() => openEdit(product)}
+                            className="p-2 bg-white/95 border border-stone-200 text-stone-500 hover:text-ituka-green hover:border-ituka-green/30 rounded-xl shadow-sm transition-colors"
+                            title="Editar producto"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => toggleStatus(product)}
+                            className="p-2 bg-white/95 border border-stone-200 text-stone-500 hover:text-stone-700 rounded-xl shadow-sm transition-colors"
+                            title={product.isActive ? 'Ocultar producto' : 'Activar producto'}
+                          >
+                            {product.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                          <button
+                            onClick={() => toggleFeatured(product)}
+                            className={`p-2 bg-white/95 border border-stone-200 rounded-xl shadow-sm transition-colors ${
+                              product.isFeatured ? 'text-ituka-gold border-ituka-gold/30' : 'text-stone-400 hover:text-stone-600'
+                            }`}
+                            title={product.isFeatured ? 'Quitar destacado' : 'Destacar producto'}
+                          >
+                            <Star className={`w-4 h-4 ${product.isFeatured ? 'fill-current' : ''}`} />
+                          </button>
+                        </>
+                      )}
+                      {canDelete && (
+                        <button
+                          onClick={() => handleDelete(product._id)}
+                          className="p-2 bg-white/95 border border-stone-200 text-stone-400 hover:text-red-600 hover:border-red-200 rounded-xl shadow-sm transition-colors"
+                          title="Eliminar producto"
+                        >
+                          <Trash className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
 

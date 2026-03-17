@@ -23,6 +23,9 @@ import AdminClients from "./pages/admin/Clients";
 import AdminChats from "./pages/admin/Chats";
 import AdminClientProfile from "./pages/admin/ClientProfile";
 import AdminSettings from "./pages/admin/Settings";
+import AdminAnalytics from "./pages/admin/Analytics";
+import AdminIndex from "./pages/admin/AdminIndex";
+import RequirePermission from "./components/admin/RequirePermission";
 
 import WelcomeScreen from "./pages/WelcomeScreen";
 
@@ -45,15 +48,87 @@ function Home() {
 
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<AdminDashboard />} />
-        <Route path="products" element={<AdminProducts />} />
-        <Route path="requests" element={<AdminRequests />} />
-        <Route path="orders" element={<AdminOrders />} />
-        <Route path="clients" element={<AdminClients />} />
-        <Route path="clients/:id" element={<AdminClientProfile />} />
-        <Route path="chats" element={<AdminChats />} />
-        <Route path="chats/:userId" element={<AdminChats />} />
-        <Route path="settings" element={<AdminSettings />} />
+        <Route index element={<AdminIndex />} />
+        <Route
+          path="dashboard"
+          element={
+            <RequirePermission permission="dashboard:read">
+              <AdminDashboard />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="analytics"
+          element={
+            <RequirePermission permission="analytics:read">
+              <AdminAnalytics />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="products"
+          element={
+            <RequirePermission permission="products:read">
+              <AdminProducts />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="requests"
+          element={
+            <RequirePermission permission="requests:read">
+              <AdminRequests />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="orders"
+          element={
+            <RequirePermission permission="orders:read">
+              <AdminOrders />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="clients"
+          element={
+            <RequirePermission permission="clients:read">
+              <AdminClients />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="clients/:id"
+          element={
+            <RequirePermission permission="clients:read">
+              <AdminClientProfile />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="chats"
+          element={
+            <RequirePermission permission="chats:read">
+              <AdminChats />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="chats/:userId"
+          element={
+            <RequirePermission permission="chats:read">
+              <AdminChats />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="settings"
+          element={
+            <RequirePermission permission="*">
+              <AdminSettings />
+            </RequirePermission>
+          }
+        />
       </Route>
 
       <Route path="*" element={<WelcomeScreen />} />

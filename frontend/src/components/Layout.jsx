@@ -11,39 +11,39 @@ export function Layout({ children }) {
   const isLinkActive = (path) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-[#F5F5DC] text-[#3E2723] font-sans flex flex-col">
+    <div className="min-h-screen bg-ituka-cream text-ituka-ink font-sans flex flex-col">
       {/* Header */}
-      <header className="bg-[#F5F5DC]/90 backdrop-blur-md border-b border-[#D4AF37]/20 sticky top-0 z-50 transition-all duration-300">
+      <header className="bg-ituka-cream/90 backdrop-blur-md border-b border-ituka-gold/20 sticky top-0 z-50 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
           
           {/* Logo */}
-          <Link to="/" className="text-3xl font-serif font-bold text-[#3E2723] tracking-wider flex items-center gap-2">
-            <span className="text-[#556B2F]">ITUKA</span>
-            <span className="text-xs font-sans font-light tracking-[0.2em] uppercase mt-1 hidden sm:block text-[#5D4037]">Skin Care</span>
+          <Link to="/" className="text-3xl font-serif font-bold text-ituka-ink tracking-wider flex items-center gap-2">
+            <span className="text-ituka-green">ITUKA</span>
+            <span className="text-xs font-sans font-light tracking-[0.2em] uppercase mt-1 hidden sm:block text-ituka-ink-muted">Skin Care</span>
           </Link>
           
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
             <Link 
               to="/dashboard" 
-              className={`text-sm font-medium uppercase tracking-widest hover:text-[#D4AF37] transition-colors ${isLinkActive('/dashboard') ? 'text-[#D4AF37]' : 'text-[#3E2723]'}`}
+              className={`text-sm font-medium uppercase tracking-widest hover:text-ituka-gold transition-colors ${isLinkActive('/dashboard') ? 'text-ituka-gold' : 'text-ituka-ink'}`}
             >
               Inicio
             </Link>
             <Link 
               to="/products" 
-              className={`text-sm font-medium uppercase tracking-widest hover:text-[#D4AF37] transition-colors ${isLinkActive('/products') ? 'text-[#D4AF37]' : 'text-[#3E2723]'}`}
+              className={`text-sm font-medium uppercase tracking-widest hover:text-ituka-gold transition-colors ${isLinkActive('/products') ? 'text-ituka-gold' : 'text-ituka-ink'}`}
             >
               Catálogo
             </Link>
             <Link 
               to="/chat" 
-              className={`text-sm font-medium uppercase tracking-widest hover:text-[#D4AF37] transition-colors ${isLinkActive('/chat') ? 'text-[#D4AF37]' : 'text-[#3E2723]'}`}
+              className={`text-sm font-medium uppercase tracking-widest hover:text-ituka-gold transition-colors ${isLinkActive('/chat') ? 'text-ituka-gold' : 'text-ituka-ink'}`}
             >
               Ayuda
             </Link>
-             {user?.role === 'admin' && (
-              <Link to="/admin" className="text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1">
+             {user?.role && user.role !== 'customer' && (
+              <Link to="/admin" className="text-ituka-gold hover:text-ituka-gold/90 font-medium flex items-center gap-1">
                 <LucideLayoutDashboard className="w-4 h-4" /> Admin
               </Link>
             )}
@@ -52,22 +52,22 @@ export function Layout({ children }) {
           {/* Icons Area */}
           <div className="flex items-center gap-6">
             <Link to="/cart" className="relative group">
-              <ShoppingCart className="w-6 h-6 text-[#3E2723] group-hover:text-[#D4AF37] transition-colors" strokeWidth={1.5} />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#556B2F] text-white text-[10px] rounded-full flex items-center justify-center">0</span>
+              <ShoppingCart className="w-6 h-6 text-ituka-ink group-hover:text-ituka-gold transition-colors" strokeWidth={1.5} />
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-ituka-gold text-white text-[10px] rounded-full flex items-center justify-center">0</span>
             </Link>
             
             {user ? (
-              <div className="flex items-center gap-4 pl-4 border-l border-[#D4AF37]/30">
+              <div className="flex items-center gap-4 pl-4 border-l border-ituka-gold/30">
                 <Link to="/profile" className="flex items-center gap-2 group">
-                   <div className="w-8 h-8 rounded-full border border-[#D4AF37] p-0.5 group-hover:border-[#556B2F] transition-colors">
-                     <div className="w-full h-full bg-[#EBE5CE] rounded-full flex items-center justify-center text-[#3E2723] font-serif font-bold text-xs">
+                   <div className="w-8 h-8 rounded-full border border-ituka-gold p-0.5 group-hover:border-ituka-green transition-colors">
+                     <div className="w-full h-full bg-ituka-cream-deep rounded-full flex items-center justify-center text-ituka-ink font-serif font-bold text-xs">
                         {user.name?.charAt(0).toUpperCase()}
                      </div>
                    </div>
                 </Link>
                 <button 
                   onClick={logout}
-                  className="text-[#3E2723]/60 hover:text-[#D4AF37] transition-colors"
+                  className="text-ituka-ink/60 hover:text-ituka-gold transition-colors"
                   title="Cerrar sesión"
                 >
                   <LogOut className="w-5 h-5" strokeWidth={1.5} />
@@ -75,10 +75,10 @@ export function Layout({ children }) {
               </div>
             ) : (
               <div className="hidden md:flex items-center gap-4">
-                <Link to="/login" className="text-sm font-medium uppercase tracking-widest text-[#3E2723] hover:text-[#D4AF37]">
+                <Link to="/login" className="text-sm font-medium uppercase tracking-widest text-ituka-ink hover:text-ituka-gold">
                   Entrar
                 </Link>
-                <Link to="/register" className="px-5 py-2 bg-[#3E2723] text-[#F5F5DC] text-xs font-bold uppercase tracking-widest rounded-full hover:bg-[#556B2F] transition-colors">
+                <Link to="/register" className="px-5 py-2 bg-ituka-gold text-white text-xs font-bold uppercase tracking-widest rounded-full hover:bg-ituka-gold/90 transition-colors">
                   Únete
                 </Link>
               </div>
@@ -86,7 +86,7 @@ export function Layout({ children }) {
 
             {/* Mobile Menu Button */}
             <button 
-              className="md:hidden text-[#3E2723]"
+              className="md:hidden text-ituka-ink"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? <X /> : <Menu />}
@@ -96,16 +96,16 @@ export function Layout({ children }) {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden bg-[#F5F5DC] border-t border-[#D4AF37]/20 p-4 absolute w-full left-0 shadow-lg">
+          <div className="md:hidden bg-ituka-cream border-t border-ituka-gold/20 p-4 absolute w-full left-0 shadow-lg">
             <nav className="flex flex-col gap-4">
-              <Link to="/dashboard" className="text-[#3E2723] font-serif text-lg">Inicio</Link>
-              <Link to="/products" className="text-[#3E2723] font-serif text-lg">Catálogo</Link>
-              <Link to="/cart" className="text-[#3E2723] font-serif text-lg">Cesta</Link>
-              <Link to="/profile" className="text-[#3E2723] font-serif text-lg">Mi Perfil</Link>
+              <Link to="/dashboard" className="text-ituka-ink font-serif text-lg">Inicio</Link>
+              <Link to="/products" className="text-ituka-ink font-serif text-lg">Catálogo</Link>
+              <Link to="/cart" className="text-ituka-ink font-serif text-lg">Cesta</Link>
+              <Link to="/profile" className="text-ituka-ink font-serif text-lg">Mi Perfil</Link>
               {!user && (
                  <>
-                  <Link to="/login" className="text-[#3E2723] font-serif text-lg">Entrar</Link>
-                  <Link to="/register" className="text-[#556B2F] font-serif text-lg font-bold">Registrarse</Link>
+                  <Link to="/login" className="text-ituka-ink font-serif text-lg">Entrar</Link>
+                  <Link to="/register" className="text-ituka-gold font-serif text-lg font-bold">Registrarse</Link>
                  </>
               )}
             </nav>
@@ -119,35 +119,35 @@ export function Layout({ children }) {
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#3E2723] text-[#F5F5DC] py-16">
+      <footer className="bg-ituka-ink text-ituka-cream py-16">
         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12">
           <div className="col-span-1 md:col-span-2">
-            <h3 className="text-3xl font-serif font-bold mb-6 text-[#D4AF37]">ITUKA</h3>
-            <p className="text-[#F5F5DC]/80 font-light leading-relaxed max-w-sm">
+            <h3 className="text-3xl font-serif font-bold mb-6 text-ituka-gold">ITUKA</h3>
+            <p className="text-ituka-cream/80 font-light leading-relaxed max-w-sm">
               Redescubre tu belleza natural con ingredientes puros y sostenibles. 
               Inspirado en la riqueza de la naturaleza africana para el cuidado de tu piel.
             </p>
           </div>
           
           <div>
-            <h4 className="text-[#D4AF37] font-serif font-bold mb-6 uppercase tracking-widest text-sm">Explorar</h4>
-            <ul className="space-y-4 text-sm font-light text-[#F5F5DC]/80">
-              <li><Link to="/products" className="hover:text-[#D4AF37] transition-colors">Colección Completa</Link></li>
-              <li><Link to="/about" className="hover:text-[#D4AF37] transition-colors">Nuestra Historia</Link></li>
-              <li><Link to="/ingredients" className="hover:text-[#D4AF37] transition-colors">Ingredientes</Link></li>
+            <h4 className="text-ituka-gold font-serif font-bold mb-6 uppercase tracking-widest text-sm">Explorar</h4>
+            <ul className="space-y-4 text-sm font-light text-ituka-cream/80">
+              <li><Link to="/products" className="hover:text-ituka-gold transition-colors">Colección Completa</Link></li>
+              <li><Link to="/about" className="hover:text-ituka-gold transition-colors">Nuestra Historia</Link></li>
+              <li><Link to="/ingredients" className="hover:text-ituka-gold transition-colors">Ingredientes</Link></li>
             </ul>
           </div>
           
           <div>
-            <h4 className="text-[#D4AF37] font-serif font-bold mb-6 uppercase tracking-widest text-sm">Ayuda</h4>
-            <ul className="space-y-4 text-sm font-light text-[#F5F5DC]/80">
-              <li><Link to="/faq" className="hover:text-[#D4AF37] transition-colors">Preguntas Frecuentes</Link></li>
-              <li><Link to="/shipping" className="hover:text-[#D4AF37] transition-colors">Envíos y Devoluciones</Link></li>
-              <li><Link to="/contact" className="hover:text-[#D4AF37] transition-colors">Contáctanos</Link></li>
+            <h4 className="text-ituka-gold font-serif font-bold mb-6 uppercase tracking-widest text-sm">Ayuda</h4>
+            <ul className="space-y-4 text-sm font-light text-ituka-cream/80">
+              <li><Link to="/faq" className="hover:text-ituka-gold transition-colors">Preguntas Frecuentes</Link></li>
+              <li><Link to="/shipping" className="hover:text-ituka-gold transition-colors">Envíos y Devoluciones</Link></li>
+              <li><Link to="/contact" className="hover:text-ituka-gold transition-colors">Contáctanos</Link></li>
             </ul>
           </div>
         </div>
-        <div className="border-t border-[#F5F5DC]/10 mt-16 pt-8 text-center text-xs text-[#F5F5DC]/40 uppercase tracking-widest">
+        <div className="border-t border-ituka-cream/10 mt-16 pt-8 text-center text-xs text-ituka-cream/40 uppercase tracking-widest">
           © 2026 ITUKA Skin Care. Todos los derechos reservados.
         </div>
       </footer>

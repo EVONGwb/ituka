@@ -72,24 +72,24 @@ export default function Cart() {
     }
   }
 
-  if (loading) return <div className="flex justify-center items-center min-h-screen bg-[#F9F7F2]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#556B2F]"></div></div>;
-  if (error) return <div className="text-center py-20 text-red-500 bg-[#F9F7F2] min-h-screen">Error: {error}</div>;
+  if (loading) return <div className="flex justify-center items-center min-h-screen bg-ituka-cream-soft"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ituka-gold"></div></div>;
+  if (error) return <div className="text-center py-20 text-red-500 bg-ituka-cream-soft min-h-screen">Error: {error}</div>;
 
   const total = cart?.items?.reduce((sum, item) => sum + (item.product.price * item.quantity), 0) || 0;
 
   return (
-    <div className="min-h-screen bg-[#F9F7F2] font-sans py-12 px-6">
+    <div className="min-h-screen bg-ituka-cream-soft font-sans py-12 px-6">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-4xl font-serif font-bold text-[#3E2723] mb-8 flex items-center gap-3">
-          <ShoppingBag className="w-8 h-8 text-[#556B2F]" /> Mi Cesta
+        <h1 className="text-4xl font-serif font-bold text-ituka-ink mb-8 flex items-center gap-3">
+          <ShoppingBag className="w-8 h-8 text-ituka-gold" /> Mi Cesta
         </h1>
 
         {!cart || cart.items.length === 0 ? (
           <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
              <div className="text-6xl mb-6">🧴</div>
-             <h2 className="text-2xl font-serif text-[#3E2723] mb-4">Tu cesta está vacía</h2>
-             <p className="text-[#5D4037] mb-8">Parece que aún no has añadido productos.</p>
-             <Link to="/products" className="inline-block bg-[#556B2F] text-white px-8 py-3 rounded-full font-bold uppercase tracking-widest hover:bg-[#3E2723] transition-colors">
+             <h2 className="text-2xl font-serif text-ituka-ink mb-4">Tu cesta está vacía</h2>
+             <p className="text-ituka-ink-muted mb-8">Parece que aún no has añadido productos.</p>
+             <Link to="/products" className="inline-block bg-ituka-gold text-white px-8 py-3 rounded-full font-bold uppercase tracking-widest hover:bg-ituka-gold/90 transition-colors">
                Explorar Productos
              </Link>
           </div>
@@ -98,8 +98,8 @@ export default function Cart() {
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-6">
               {cart.items.map((item) => (
-                <div key={item.product._id} className="bg-white rounded-2xl p-6 shadow-sm flex gap-6 items-center border border-[#F5F5DC]">
-                  <div className="w-24 h-24 bg-[#F5F5DC] rounded-xl overflow-hidden flex-shrink-0">
+                <div key={item.product._id} className="bg-white rounded-2xl p-6 shadow-sm flex gap-6 items-center border border-ituka-border">
+                  <div className="w-24 h-24 bg-ituka-cream rounded-xl overflow-hidden flex-shrink-0">
                      <img 
                        src={item.product.images?.[0] || 'https://placehold.co/200x200'} 
                        alt={item.product.name} 
@@ -108,23 +108,23 @@ export default function Cart() {
                   </div>
                   
                   <div className="flex-grow">
-                    <h4 className="font-serif font-bold text-lg text-[#3E2723] mb-1">{item.product.name}</h4>
-                    <p className="text-[#556B2F] font-bold">${item.product.price.toFixed(2)}</p>
+                    <h4 className="font-serif font-bold text-lg text-ituka-ink mb-1">{item.product.name}</h4>
+                    <p className="text-ituka-green font-bold">${item.product.price.toFixed(2)}</p>
                   </div>
 
                   <div className="flex items-center gap-6">
-                    <div className="flex items-center border border-[#D4AF37]/30 rounded-full px-2 py-1">
+                    <div className="flex items-center border border-ituka-gold/30 rounded-full px-2 py-1">
                       <button 
                         onClick={() => handleUpdateQuantity(item.product._id, item.quantity - 1)} 
                         disabled={item.quantity <= 1}
-                        className="p-2 text-[#556B2F] disabled:opacity-30 hover:bg-[#F5F5DC] rounded-full transition-colors"
+                        className="p-2 text-ituka-green disabled:opacity-30 hover:bg-ituka-cream rounded-full transition-colors"
                       >
                         <Minus className="w-4 h-4" />
                       </button>
-                      <span className="w-8 text-center font-bold text-[#3E2723]">{item.quantity}</span>
+                      <span className="w-8 text-center font-bold text-ituka-ink">{item.quantity}</span>
                       <button 
                         onClick={() => handleUpdateQuantity(item.product._id, item.quantity + 1)}
-                        className="p-2 text-[#556B2F] hover:bg-[#F5F5DC] rounded-full transition-colors"
+                        className="p-2 text-ituka-green hover:bg-ituka-cream rounded-full transition-colors"
                       >
                         <Plus className="w-4 h-4" />
                       </button>
@@ -143,40 +143,40 @@ export default function Cart() {
 
             {/* Summary */}
             <div className="lg:col-span-1">
-               <div className="bg-white rounded-2xl p-8 shadow-lg shadow-[#556B2F]/5 sticky top-24 border border-[#F5F5DC]">
-                  <h3 className="font-serif font-bold text-xl text-[#3E2723] mb-6">Resumen del Pedido</h3>
+               <div className="bg-white rounded-2xl p-8 shadow-lg shadow-ituka-green/5 sticky top-24 border border-ituka-border">
+                  <h3 className="font-serif font-bold text-xl text-ituka-ink mb-6">Resumen del Pedido</h3>
                   
-                  <div className="space-y-4 mb-8 pb-8 border-b border-[#F5F5DC]">
-                     <div className="flex justify-between text-[#5D4037]">
+                  <div className="space-y-4 mb-8 pb-8 border-b border-ituka-border">
+                     <div className="flex justify-between text-ituka-ink-muted">
                         <span>Subtotal</span>
                         <span>${total.toFixed(2)}</span>
                      </div>
-                     <div className="flex justify-between text-[#5D4037]">
+                     <div className="flex justify-between text-ituka-ink-muted">
                         <span>Envío</span>
-                        <span className="text-[#556B2F] font-bold">Calculado al final</span>
+                        <span className="text-ituka-green font-bold">Calculado al final</span>
                      </div>
                   </div>
 
-                  <div className="flex justify-between text-xl font-bold text-[#3E2723] mb-8">
+                  <div className="flex justify-between text-xl font-bold text-ituka-ink mb-8">
                      <span>Total Estimado</span>
                      <span>${total.toFixed(2)}</span>
                   </div>
 
                   <div className="mb-8">
-                    <label className="block text-sm font-bold text-[#3E2723] mb-2">Notas del pedido (Opcional)</label>
+                    <label className="block text-sm font-bold text-ituka-ink mb-2">Notas del pedido (Opcional)</label>
                     <textarea
                       value={note}
                       onChange={(e) => setNote(e.target.value)}
                       onBlur={handleSaveNote}
                       rows={3}
-                      className="w-full p-3 bg-[#F9F7F2] border-none rounded-lg text-[#3E2723] placeholder-[#3E2723]/30 focus:ring-2 focus:ring-[#556B2F] transition-all"
+                      className="w-full p-3 bg-ituka-cream-soft border-none rounded-lg text-ituka-ink placeholder-ituka-ink/30 focus:ring-2 focus:ring-ituka-gold/30 transition-all"
                       placeholder="Instrucciones especiales para el envío..."
                     />
                   </div>
 
                   <button 
                     onClick={handleCheckout}
-                    className="w-full bg-[#556B2F] text-white py-4 rounded-xl font-bold uppercase tracking-widest hover:bg-[#3E2723] transition-colors shadow-lg shadow-[#556B2F]/20 flex items-center justify-center gap-2"
+                    className="w-full bg-ituka-gold text-white py-4 rounded-xl font-bold uppercase tracking-widest hover:bg-ituka-gold/90 transition-colors shadow-lg shadow-ituka-gold/20 flex items-center justify-center gap-2"
                   >
                     Enviar Pedido <ArrowRight className="w-5 h-5" />
                   </button>

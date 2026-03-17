@@ -30,70 +30,75 @@ export default function MyRequests() {
     }
   }
 
-  const getStatusColor = (status) => {
+  const getStatusClasses = (status) => {
     switch (status) {
-      case 'solicitud_recibida': return '#2196f3';
-      case 'en_conversacion': return '#9c27b0';
-      case 'confirmado': return '#4caf50';
-      case 'cancelado': return '#f44336';
-      default: return '#666';
+      case 'solicitud_recibida':
+        return 'bg-ituka-info-soft text-ituka-info border border-ituka-info/20';
+      case 'en_conversacion':
+        return 'bg-ituka-warning-soft text-ituka-warning border border-ituka-warning/20';
+      case 'confirmado':
+        return 'bg-ituka-success-soft text-ituka-success border border-ituka-success/20';
+      case 'cancelado':
+        return 'bg-ituka-danger-soft text-ituka-danger border border-ituka-danger/20';
+      default:
+        return 'bg-stone-100 text-stone-600 border border-stone-200';
     }
   };
 
-  if (loading) return <div style={{ padding: 20 }}>Cargando solicitudes...</div>;
-  if (error) return <div style={{ padding: 20, color: "red" }}>Error: {error}</div>;
+  if (loading) return <div className="min-h-screen bg-ituka-cream-soft flex items-center justify-center text-ituka-ink">Cargando solicitudes...</div>;
+  if (error) return <div className="min-h-screen bg-ituka-cream-soft flex items-center justify-center text-ituka-danger">Error: {error}</div>;
 
   return (
-    <div style={{ maxWidth: 800, margin: "30px auto", fontFamily: "system-ui", padding: 20 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <h2>Mis Solicitudes</h2>
-        <Link to="/dashboard" style={{ textDecoration: "none", color: "#666" }}>← Volver</Link>
-      </div>
-
-      {requests.length === 0 ? (
-        <p>No tienes solicitudes realizadas.</p>
-      ) : (
-        <div style={{ display: "grid", gap: 20 }}>
-          {requests.map((req) => (
-            <div key={req._id} style={{ border: "1px solid #ddd", borderRadius: 8, padding: 20, backgroundColor: "#fff" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                <span style={{ fontWeight: "bold" }}>ID: {req._id.slice(-6)}</span>
-                <span style={{ 
-                  backgroundColor: getStatusColor(req.status), 
-                  color: "white", 
-                  padding: "2px 8px", 
-                  borderRadius: 4, 
-                  fontSize: "0.8em",
-                  textTransform: "uppercase" 
-                }}>
-                  {req.status.replace('_', ' ')}
-                </span>
-              </div>
-              
-              <div style={{ marginBottom: 10 }}>
-                <span style={{ color: "#666", fontSize: "0.9em" }}>
-                  {new Date(req.createdAt).toLocaleString()}
-                </span>
-              </div>
-
-              <div style={{ borderTop: "1px solid #eee", paddingTop: 10 }}>
-                {req.items.map((item, idx) => (
-                  <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9em", marginBottom: 5 }}>
-                    <span>{item.quantity}x {item.product?.name || 'Producto eliminado'}</span>
-                    <span>${item.price}</span>
-                  </div>
-                ))}
-              </div>
-
-              {req.note && (
-                <div style={{ marginTop: 10, backgroundColor: "#f9f9f9", padding: 8, borderRadius: 4, fontSize: "0.9em", fontStyle: "italic" }}>
-                  Note: {req.note}
-                </div>
-              )}
-            </div>
-          ))}
+    <div className="min-h-screen bg-ituka-cream-soft font-sans py-12 px-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between gap-4 mb-8">
+          <h2 className="text-3xl font-serif font-bold text-ituka-ink">Mis Solicitudes</h2>
+          <Link to="/dashboard" className="text-ituka-muted hover:text-ituka-ink transition-colors">← Volver</Link>
         </div>
-      )}
+
+        {requests.length === 0 ? (
+          <div className="bg-ituka-surface border border-ituka-border rounded-2xl p-10 text-ituka-ink-muted">
+            No tienes solicitudes realizadas.
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {requests.map((req) => (
+              <div key={req._id} className="bg-ituka-surface border border-ituka-border rounded-2xl p-6">
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div>
+                    <p className="text-sm text-ituka-muted">ID</p>
+                    <p className="font-bold text-ituka-ink">{req._id.slice(-6)}</p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${getStatusClasses(req.status)}`}>
+                    {req.status.replaceAll('_', ' ')}
+                  </span>
+                </div>
+
+                <p className="text-sm text-ituka-muted mb-4">
+                  {new Date(req.createdAt).toLocaleString()}
+                </p>
+
+                <div className="border-t border-ituka-border pt-4 space-y-2">
+                  {req.items.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between gap-4 text-sm">
+                      <span className="text-ituka-ink">
+                        {item.quantity}x {item.product?.name || 'Producto eliminado'}
+                      </span>
+                      <span className="font-semibold text-ituka-ink-muted">${item.price}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {req.note && (
+                  <div className="mt-4 bg-ituka-cream border border-ituka-border rounded-xl p-4 text-sm text-ituka-ink-muted italic">
+                    Nota: {req.note}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

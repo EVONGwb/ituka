@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
   skinType: { type: String },
   skinNeeds: { type: String },
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
-  role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
+  role: { type: String, enum: ['customer', 'admin', 'operator', 'viewer', 'sales'], default: 'customer' },
   resetPasswordToken: String,
   resetPasswordExpire: Date
 }, {

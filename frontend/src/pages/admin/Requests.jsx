@@ -4,9 +4,12 @@ import { MessageSquare, Check, X, FileText, Search, Filter, Calendar, Send, Shop
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { SectionHeader, SearchInput, StatusBadge, EmptyState, ActionButton } from '../../components/admin/ui';
 import AdminChatWidget from '../../components/admin/chat/AdminChatWidget';
+import { useAdminPreferences } from '../../context/AdminPreferencesContext';
+import { formatDate, formatDateTime } from '../../lib/adminDateFormat';
 
 export default function AdminRequests() {
   const navigate = useNavigate();
+  const { prefs } = useAdminPreferences();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
@@ -103,13 +106,13 @@ export default function AdminRequests() {
   });
 
   return (
-    <div className="h-[calc(100vh-100px)] flex flex-col bg-[#F9F9F7]"> {/* Fondo Crema Claro General */}
+    <div className="h-[calc(100vh-100px-5rem)] lg:h-[calc(100vh-100px)] flex flex-col bg-ituka-cream-soft">
       {/* ZONA 1: ENCABEZADO GLOBAL + ZONA 2: FILTROS INTEGRADOS */}
       <div className="flex flex-col gap-5 mb-8">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold font-serif text-ituka-text tracking-tight">Solicitudes</h1>
-            <p className="text-stone-500 text-sm mt-1">Gestiona y convierte las peticiones de clientes</p>
+            <p className="text-ituka-ink/55 text-sm mt-1">Gestiona y convierte las peticiones de clientes</p>
           </div>
           
           <div className="flex gap-4 items-center">
@@ -118,7 +121,7 @@ export default function AdminRequests() {
                    value={searchTerm} 
                    onChange={(e) => setSearchTerm(e.target.value)} 
                    placeholder="Buscar cliente, producto..." 
-                   className="shadow-sm border-stone-200 focus:border-ituka-gold/50 transition-all"
+                   className="shadow-ituka-card"
                />
             </div>
           </div>
@@ -127,7 +130,7 @@ export default function AdminRequests() {
         {/* BARRA DE FILTROS SECUNDARIA (Estilo Pill Moderno) */}
         <div className="flex items-center gap-4 overflow-x-auto pb-1 scrollbar-hide">
            {/* Filtro de Estado */}
-           <div className="flex items-center gap-1 p-1.5 bg-white border border-stone-100 rounded-2xl shadow-sm">
+           <div className="flex items-center gap-1 p-1.5 bg-white border border-ituka-border/70 rounded-2xl shadow-ituka-card">
               {[
                   { id: 'solicitud_recibida', label: 'Nuevas' },
                   { id: 'en_conversacion', label: 'En Conversación' },
@@ -140,8 +143,8 @@ export default function AdminRequests() {
                       onClick={() => setFilterStatus(tab.id)}
                       className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 ${
                           filterStatus === tab.id 
-                          ? 'bg-ituka-text text-white shadow-md transform scale-105' 
-                          : 'text-stone-500 hover:bg-stone-50 hover:text-stone-800'
+                          ? 'bg-ituka-ink text-white shadow-ituka-card transform scale-105' 
+                          : 'text-ituka-muted hover:bg-ituka-cream-soft hover:text-ituka-ink'
                       }`}
                   >
                       {tab.label}
@@ -151,11 +154,11 @@ export default function AdminRequests() {
 
            {/* Filtro de Fecha */}
            <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ituka-ink/35 pointer-events-none" />
               <select 
                   value={filterDate}
                   onChange={(e) => setFilterDate(e.target.value)}
-                  className="pl-10 pr-10 py-2.5 bg-white border border-stone-100 rounded-2xl text-xs font-bold text-stone-600 focus:outline-none focus:border-ituka-gold/50 appearance-none shadow-sm cursor-pointer hover:border-stone-200 transition-all h-[42px]"
+                  className="pl-10 pr-10 py-2.5 bg-white border border-ituka-border/70 rounded-2xl text-xs font-bold text-ituka-ink-muted focus:outline-none focus:border-ituka-gold/50 appearance-none shadow-ituka-card cursor-pointer hover:border-ituka-border/60 transition-all h-[42px]"
               >
                   <option value="all">Cualquier fecha</option>
                   <option value="today">Hoy</option>
@@ -168,9 +171,9 @@ export default function AdminRequests() {
 
       <div className="flex flex-1 gap-8 overflow-hidden pb-4">
         {/* PANEL IZQUIERDO: LISTA DE SOLICITUDES */}
-        <div className="w-1/3 flex flex-col bg-white rounded-[32px] border border-stone-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+        <div className="w-1/3 flex flex-col ituka-panel overflow-hidden">
             {/* Header de Lista */}
-            <div className="px-6 py-5 border-b border-stone-50 bg-white flex justify-between items-center sticky top-0 z-10">
+            <div className="px-6 py-5 border-b border-ituka-border/60 bg-white flex justify-between items-center sticky top-0 z-10">
                 <span className="text-xs font-bold text-stone-400 uppercase tracking-widest">
                     {filteredRequests.length} {filteredRequests.length === 1 ? 'Solicitud' : 'Solicitudes'}
                 </span>
@@ -194,29 +197,29 @@ export default function AdminRequests() {
                     <div 
                         key={req._id}
                         onClick={() => setSelectedRequest(req)}
-                        className={`p-5 rounded-[24px] cursor-pointer transition-all duration-300 border border-transparent group relative ${
+                        className={`p-5 rounded-ituka-card cursor-pointer transition-all duration-300 border border-transparent group relative ${
                             selectedRequest?._id === req._id 
-                            ? 'bg-[#FDFBF7] border-ituka-gold/20 shadow-md transform scale-[1.02]' 
-                            : 'bg-white hover:bg-stone-50 hover:border-stone-100 hover:shadow-sm'
+                            ? 'bg-ituka-cream border-ituka-gold/20 shadow-ituka-float transform scale-[1.02]' 
+                            : 'bg-white hover:bg-ituka-cream-soft hover:border-ituka-border/70 hover:shadow-ituka-card'
                         }`}
                     >
                         <div className="flex justify-between items-start mb-3">
                             <div className="flex items-center gap-3">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold font-serif transition-colors ${
-                                    selectedRequest?._id === req._id ? 'bg-ituka-text text-ituka-gold' : 'bg-stone-100 text-stone-500'
+                                    selectedRequest?._id === req._id ? 'bg-ituka-ink text-ituka-gold' : 'bg-ituka-cream-soft text-ituka-ink/60'
                                 }`}>
                                     {req.user?.name?.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
                                     <p className={`font-bold text-sm leading-tight transition-colors ${
-                                        selectedRequest?._id === req._id ? 'text-ituka-text' : 'text-stone-700'
+                                        selectedRequest?._id === req._id ? 'text-ituka-ink' : 'text-ituka-ink'
                                     }`}>{req.user?.name}</p>
                                     <p className="text-[10px] text-stone-400 font-medium mt-0.5">
                                         {(() => {
                                             const date = new Date(req.createdAt);
                                             const today = new Date();
                                             if (date.toDateString() === today.toDateString()) return 'Hoy';
-                                            return date.toLocaleDateString();
+                                            return formatDate(date, prefs);
                                         })()}
                                     </p>
                                 </div>
@@ -233,7 +236,7 @@ export default function AdminRequests() {
                         </div>
 
                         {/* ZONA 4: ACCIONES RÁPIDAS (Hover) */}
-                        <div className="absolute right-3 bottom-3 hidden group-hover:flex gap-1.5 bg-white p-1.5 rounded-xl shadow-lg border border-stone-100 z-10 animate-in fade-in zoom-in duration-200">
+                        <div className="absolute right-3 bottom-3 hidden group-hover:flex gap-1.5 bg-white p-1.5 rounded-xl shadow-ituka-float border border-ituka-border/70 z-10 animate-in fade-in zoom-in duration-200">
                              <Link 
                                  to={`/admin/chats/${req.user?._id}`}
                                  onClick={(e) => e.stopPropagation()}
@@ -278,13 +281,13 @@ export default function AdminRequests() {
         </div>
 
         {/* PANEL DERECHO: DETALLE Y ACCIONES */}
-        <div className="w-2/3 bg-white rounded-[32px] border border-stone-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden flex flex-col relative">
+        <div className="w-2/3 ituka-panel overflow-hidden flex flex-col relative">
             {selectedRequest ? (
                 <>
                     {/* Header del Detalle */}
                     <div className="px-8 py-6 border-b border-stone-50 flex justify-between items-center bg-white sticky top-0 z-10">
                         <div className="flex items-center gap-5">
-                            <div className="w-14 h-14 rounded-2xl bg-stone-50 flex items-center justify-center text-ituka-gold font-serif font-bold text-2xl border border-stone-100 shadow-sm">
+                            <div className="w-14 h-14 rounded-2xl bg-ituka-cream-soft flex items-center justify-center text-ituka-gold font-serif font-bold text-2xl border border-ituka-border/70 shadow-ituka-card">
                                 {selectedRequest.user?.name.charAt(0)}
                             </div>
                             <div>
@@ -321,14 +324,14 @@ export default function AdminRequests() {
                         {/* COLUMNA IZQUIERDA: INFORMACIÓN */}
                         <div className="space-y-8 pr-2">
                             {/* Estado Actual */}
-                            <div className="p-5 rounded-2xl bg-stone-50/50 border border-stone-100 flex items-center justify-between">
+                            <div className="p-5 rounded-2xl bg-ituka-cream-soft/60 border border-ituka-border/70 flex items-center justify-between">
                                 <div>
                                     <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1.5">Estado Actual</p>
                                     <StatusBadge status={selectedRequest.status} />
                                 </div>
                                 <div className="text-right">
                                     <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1.5">Fecha Solicitud</p>
-                                    <p className="font-bold text-stone-600 text-sm">{new Date(selectedRequest.createdAt).toLocaleString()}</p>
+                                    <p className="font-bold text-stone-600 text-sm">{formatDateTime(selectedRequest.createdAt, prefs)}</p>
                                 </div>
                             </div>
 
@@ -350,7 +353,7 @@ export default function AdminRequests() {
                                 </h3>
                                 <div className="space-y-4">
                                     {selectedRequest.items.map((item, i) => (
-                                        <div key={i} className="flex items-center justify-between p-4 rounded-2xl border border-stone-100 hover:border-ituka-gold/20 hover:bg-[#FDFBF7] transition-all bg-white shadow-sm hover:shadow-md">
+                                        <div key={i} className="flex items-center justify-between p-4 rounded-2xl border border-ituka-border/70 hover:border-ituka-gold/20 hover:bg-ituka-cream transition-all bg-white shadow-ituka-card hover:shadow-ituka-float">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-14 h-14 rounded-xl bg-stone-50 flex items-center justify-center overflow-hidden border border-stone-50">
                                                     {item.product?.images?.[0] ? (
@@ -370,7 +373,7 @@ export default function AdminRequests() {
                                             </div>
                                         </div>
                                     ))}
-                                    <div className="flex justify-end pt-6 border-t border-stone-100 mt-6">
+                                    <div className="flex justify-end pt-6 ituka-divider mt-6">
                                         <div className="text-right">
                                             <p className="text-xs text-stone-400 font-bold uppercase tracking-widest mb-1">Total Estimado</p>
                                             <p className="text-3xl font-serif font-bold text-ituka-text">${selectedRequest.total}</p>
@@ -381,8 +384,8 @@ export default function AdminRequests() {
                         </div>
 
                         {/* COLUMNA DERECHA: CHAT INTEGRADO (Paso 9) */}
-                        <div className="bg-stone-50 rounded-[24px] border border-stone-100 overflow-hidden flex flex-col h-[600px] lg:h-auto shadow-inner relative">
-                            <div className="px-5 py-4 bg-white border-b border-stone-100 flex justify-between items-center z-10 shadow-sm">
+                        <div className="bg-ituka-cream-soft rounded-ituka-card border border-ituka-border/70 overflow-hidden flex flex-col h-[600px] lg:h-auto shadow-ituka-inset relative">
+                            <div className="px-5 py-4 bg-white border-b border-ituka-border/60 flex justify-between items-center z-10 shadow-ituka-card">
                                 <h3 className="font-bold text-stone-700 flex items-center gap-2 text-sm">
                                     <MessageSquare className="w-4 h-4 text-ituka-gold" />
                                     Conversación con {selectedRequest.user?.name.split(' ')[0]}

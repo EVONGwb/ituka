@@ -3,11 +3,14 @@ import { useParams, Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { EmptyState, StatusBadge } from '../../components/admin/ui';
 import { Users, MessageSquare, FileText, Mail, Phone, MapPin, Clock } from 'lucide-react';
+import { useAdminPreferences } from '../../context/AdminPreferencesContext';
+import { formatDate, formatDateTime } from '../../lib/adminDateFormat';
 
 const REQUEST_STATUSES = new Set(['solicitud_recibida', 'en_conversacion']);
 
 export default function AdminClientProfile() {
   const { id } = useParams();
+  const { prefs } = useAdminPreferences();
   const [client, setClient] = useState(null);
   const [clientsLoading, setClientsLoading] = useState(true);
   const [requests, setRequests] = useState([]);
@@ -151,8 +154,8 @@ export default function AdminClientProfile() {
               <div className="flex items-center gap-2 text-sm text-stone-600">
                 <Clock className="w-4 h-4 text-stone-400" />
                 <span>
-                  Registro: {client?.createdAt ? new Date(client.createdAt).toLocaleDateString() : '—'} · Última actividad:{' '}
-                  {client?.stats?.lastActivity ? new Date(client.stats.lastActivity).toLocaleDateString() : 'Sin actividad'}
+                  Registro: {client?.createdAt ? formatDate(client.createdAt, prefs) : '—'} · Última actividad:{' '}
+                  {client?.stats?.lastActivity ? formatDate(client.stats.lastActivity, prefs) : 'Sin actividad'}
                 </span>
               </div>
             </div>
@@ -200,7 +203,7 @@ export default function AdminClientProfile() {
                         <p className="text-xs text-stone-400 mt-1">
                           {r.items?.[0]?.product?.name || 'Producto'}{r.items?.length > 1 ? ` +${r.items.length - 1} más` : ''}
                         </p>
-                        <p className="text-[11px] text-stone-400 mt-1">{r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ''}</p>
+                        <p className="text-[11px] text-stone-400 mt-1">{r.createdAt ? formatDate(r.createdAt, prefs) : ''}</p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <StatusBadge status={r.status} size="xs" />
@@ -240,7 +243,7 @@ export default function AdminClientProfile() {
                         <p className="text-xs text-stone-400 mt-1">
                           {o.items?.[0]?.product?.name || 'Producto'}{o.items?.length > 1 ? ` +${o.items.length - 1} más` : ''}
                         </p>
-                        <p className="text-[11px] text-stone-400 mt-1">{o.createdAt ? new Date(o.createdAt).toLocaleDateString() : ''}</p>
+                        <p className="text-[11px] text-stone-400 mt-1">{o.createdAt ? formatDate(o.createdAt, prefs) : ''}</p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <StatusBadge status={o.status} size="xs" type="order" />
@@ -282,7 +285,7 @@ export default function AdminClientProfile() {
                         }`}>
                           <p className="whitespace-pre-wrap">{m.content || (m.imageUrl ? 'Adjunto' : '')}</p>
                           <p className={`text-[10px] mt-2 font-medium ${isAdmin ? 'text-white/80' : 'text-stone-400'}`}>
-                            {m.createdAt ? new Date(m.createdAt).toLocaleString() : ''}
+                            {m.createdAt ? formatDateTime(m.createdAt, prefs) : ''}
                           </p>
                         </div>
                       </div>
@@ -297,4 +300,3 @@ export default function AdminClientProfile() {
     </div>
   );
 }
-

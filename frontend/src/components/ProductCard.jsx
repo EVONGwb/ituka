@@ -31,25 +31,25 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-[#F5F5DC]">
+    <div className="group bg-ituka-surface rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-ituka-border">
       <Link to={`/products/${_id}`} className="block relative">
-        <div className="aspect-[4/5] overflow-hidden bg-[#F5F5DC] relative">
+        <div className="aspect-[4/5] overflow-hidden bg-ituka-cream relative">
           <img 
             src={imageUrl} 
             alt={name} 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
           />
           {/* Quick Action Overlay */}
-          <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex gap-2 justify-center bg-white/90 backdrop-blur-sm">
+          <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex gap-2 justify-center bg-ituka-surface/90 backdrop-blur-sm">
              <button 
                onClick={handleAddToCart}
-               className="flex-1 bg-[#556B2F] text-white py-2 px-4 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#3E2723] transition-colors flex items-center justify-center gap-2"
+               className="flex-1 bg-ituka-gold text-white py-2 px-4 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-ituka-gold/90 transition-colors flex items-center justify-center gap-2"
              >
                <ShoppingBag className="w-4 h-4" /> Añadir
              </button>
              <button 
                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-               className="p-2 border border-[#D4AF37] text-[#D4AF37] rounded-full hover:bg-[#D4AF37] hover:text-white transition-colors"
+               className="p-2 border border-ituka-gold text-ituka-gold rounded-full hover:bg-ituka-gold hover:text-white transition-colors"
              >
                <Heart className="w-4 h-4" />
              </button>
@@ -57,14 +57,14 @@ const ProductCard = ({ product }) => {
         </div>
         
         <div className="p-5">
-          <p className="text-xs text-[#556B2F] font-bold uppercase tracking-widest mb-1">{category}</p>
-          <h3 className="font-serif text-lg font-bold text-[#3E2723] mb-2 leading-tight group-hover:text-[#D4AF37] transition-colors">{name}</h3>
+          <p className="text-xs text-ituka-green font-bold uppercase tracking-widest mb-1">{category}</p>
+          <h3 className="font-serif text-lg font-bold text-ituka-ink mb-2 leading-tight group-hover:text-ituka-gold transition-colors">{name}</h3>
           
           <div className="flex items-center justify-between mt-4">
-             <span className="text-lg font-medium text-[#5D4037]">${price.toFixed(2)}</span>
+             <span className="text-lg font-medium text-ituka-ink-muted">${price.toFixed(2)}</span>
              <div className="flex gap-1">
                 {skinTypes?.slice(0, 2).map(type => (
-                  <span key={type} className="text-[10px] px-2 py-1 bg-[#F5F5DC] text-[#5D4037] rounded-full uppercase tracking-wider">
+                  <span key={type} className="text-[10px] px-2 py-1 bg-ituka-cream text-ituka-ink-muted rounded-full uppercase tracking-wider">
                     {type}
                   </span>
                 ))}

@@ -101,14 +101,14 @@ export default function Chat() {
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5050';
   
-  if (loading) return <div className="flex justify-center items-center min-h-screen bg-[#F9F7F2]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#556B2F]"></div></div>;
+  if (loading) return <div className="flex justify-center items-center min-h-screen bg-ituka-cream-soft"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ituka-gold"></div></div>;
 
   return (
-    <div className="h-[calc(100vh-80px)] bg-[#F9F7F2] font-sans flex flex-col">
-      <div className="bg-white px-6 py-4 border-b border-[#D4AF37]/20 shadow-sm flex justify-between items-center">
+    <div className="h-[calc(100vh-80px)] bg-ituka-cream-soft font-sans flex flex-col">
+      <div className="bg-ituka-surface px-6 py-4 border-b border-ituka-gold/20 shadow-sm flex justify-between items-center">
         <div>
-          <h3 className="text-[#3E2723] font-serif font-bold text-lg">Soporte ITUKA</h3>
-          <p className="text-[#556B2F] text-xs uppercase tracking-wider">En línea</p>
+          <h3 className="text-ituka-ink font-serif font-bold text-lg">Soporte ITUKA</h3>
+          <p className="text-ituka-success text-xs uppercase tracking-wider">En línea</p>
         </div>
       </div>
       
@@ -121,15 +121,15 @@ export default function Chat() {
               <div 
                 className={`max-w-[70%] p-4 rounded-2xl shadow-sm ${
                   isMe 
-                    ? 'bg-[#556B2F] text-white rounded-br-none' 
-                    : 'bg-white text-[#3E2723] border border-[#F5F5DC] rounded-bl-none'
+                    ? 'bg-ituka-green text-white rounded-br-none' 
+                    : 'bg-ituka-surface text-ituka-ink border border-ituka-border rounded-bl-none'
                 }`}
               >
                 {msg.imageUrl && (
                   <img src={`${API_URL}${msg.imageUrl}`} alt="attachment" className="rounded-lg mb-2 max-w-full" />
                 )}
                 {msg.content && <p className="leading-relaxed">{msg.content}</p>}
-                <span className={`text-[10px] block mt-2 opacity-70 ${isMe ? 'text-white' : 'text-[#5D4037]'}`}>
+                <span className={`text-[10px] block mt-2 opacity-70 ${isMe ? 'text-white' : 'text-ituka-ink-muted'}`}>
                   {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
@@ -139,10 +139,10 @@ export default function Chat() {
         <div ref={messagesEndRef} />
       </div>
 
-      <form className="bg-white p-4 border-t border-[#D4AF37]/20 flex items-center gap-4" onSubmit={handleSendMessage}>
+      <form className="bg-ituka-surface p-4 border-t border-ituka-gold/20 flex items-center gap-4" onSubmit={handleSendMessage}>
         <button 
           type="button" 
-          className="p-3 text-[#556B2F] hover:bg-[#F9F7F2] rounded-full transition-colors"
+          className="p-3 text-ituka-green hover:bg-ituka-cream rounded-full transition-colors"
           onClick={() => fileInputRef.current?.click()}
         >
           <Paperclip className="w-5 h-5" />
@@ -156,7 +156,7 @@ export default function Chat() {
         />
         
         {file && (
-          <div className="bg-[#EBE5CE] px-3 py-1 rounded-full flex items-center gap-2 text-xs text-[#5D4037]">
+          <div className="bg-ituka-cream-deep px-3 py-1 rounded-full flex items-center gap-2 text-xs text-ituka-ink-muted">
             <ImageIcon className="w-3 h-3" /> Imagen
             <button onClick={() => setFile(null)} className="ml-1 font-bold">×</button>
           </div>
@@ -167,11 +167,11 @@ export default function Chat() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Escribe un mensaje..."
-          className="flex-grow bg-[#F9F7F2] border-none rounded-full px-6 py-3 text-[#3E2723] focus:ring-2 focus:ring-[#556B2F] transition-all"
+          className="flex-grow bg-ituka-cream-soft border-none rounded-full px-6 py-3 text-ituka-ink focus:ring-2 focus:ring-ituka-gold/30 transition-all"
         />
         <button 
           type="submit" 
-          className="p-3 bg-[#556B2F] text-white rounded-full hover:bg-[#3E2723] transition-colors shadow-lg shadow-[#556B2F]/20"
+          className="p-3 bg-ituka-gold text-white rounded-full hover:bg-ituka-gold/90 transition-colors shadow-lg shadow-ituka-gold/20"
           disabled={!input.trim() && !file}
         >
           <Send className="w-5 h-5" />

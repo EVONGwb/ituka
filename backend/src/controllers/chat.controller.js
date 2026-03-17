@@ -3,6 +3,7 @@ import { Message } from '../models/Message.js';
 import { getIO } from '../sockets/socket.js';
 import mongoose from 'mongoose';
 import { Order } from '../models/Order.js';
+import { hasPermission } from '../config/permissions.js';
 
 const normalizeSenderRole = (role) => {
   if (role === 'admin' || role === 'support') return role;
@@ -15,7 +16,7 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 const getUserId = (req) => (req.user?.id || req.user?._id || '').toString();
 
 const hasChatAccess = (chat, userId, role) => {
-  if (role === 'admin') return true;
+  if (role && role !== 'customer' && hasPermission(role, 'chats:read')) return true;
   const participants = chat?.participants || [];
   return participants.some((p) => (p?._id?.toString?.() || p?.toString?.() || String(p)) === userId);
 };
@@ -27,15 +28,16 @@ export const getOrCreateChat = async (req, res) => {
     const userId = getUserId(req);
     const role = req.user?.role;
     if (!userId) return res.status(401).json({ message: 'Acceso no autorizado' });
+    const isStaff = role && role !== 'customer' && hasPermission(role, 'chats:read');
 
     if (!requestId) {
-      if (role !== 'admin' || !targetUserId) {
+      if (!isStaff || !targetUserId) {
         return res.status(400).json({ message: 'requestId es requerido' });
       }
 
       const latestOrder = await Order.findOne({ user: targetUserId }).sort({ createdAt: -1 }).select('_id');
       requestId = latestOrder ? latestOrder._id.toString() : `support-${targetUserId}`;
-    } else if (role !== 'admin') {
+    } else if (!isStaff) {
       if (requestId === 'support-general') {
         requestId = `support-${userId}`;
       } else if (isValidObjectId(requestId)) {
@@ -52,7 +54,7 @@ export const getOrCreateChat = async (req, res) => {
 
     if (!chat) {
       let participants = [userId];
-      if (role === 'admin') {
+      if (isStaff) {
         if (targetUserId) participants.push(targetUserId);
         if (isValidObjectId(requestId)) {
           const order = await Order.findById(requestId).select('user');
@@ -67,7 +69,7 @@ export const getOrCreateChat = async (req, res) => {
         return res.status(403).json({ message: 'Acceso denegado' });
       }
 
-      if (role === 'admin') {
+      if (isStaff) {
         const currentParticipants = (chat.participants || []).map((p) => p?._id?.toString?.() || p?.toString?.() || String(p));
         if (!currentParticipants.includes(userId)) {
           chat.participants.push(userId);
@@ -136,7 +138,7 @@ export const getConversations = async (req, res) => {
       const order = orderById.get(chat.requestId);
       const participants = chat.participants || [];
       const otherParticipant =
-        participants.find(p => p._id?.toString?.() !== adminId && p.role !== 'admin') ||
+        participants.find(p => p._id?.toString?.() !== adminId && p.role === 'customer') ||
         participants.find(p => p._id?.toString?.() !== adminId) ||
         participants[0];
 

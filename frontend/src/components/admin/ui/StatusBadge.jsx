@@ -2,21 +2,21 @@ export default function StatusBadge({ status, type = 'default', size = 'default'
   const getStatusStyles = (status) => {
     const styles = {
       // SOLICITUDES (Paso 6)
-      solicitud_recibida: 'bg-blue-50 text-blue-600 border-blue-100', // Nueva -> Azul
-      en_conversacion: 'bg-orange-50 text-orange-600 border-orange-100', // En conversación -> Naranja
-      confirmado: 'bg-green-50 text-green-600 border-green-100', // Confirmada -> Verde
-      cancelado: 'bg-stone-100 text-stone-500 border-stone-200', // Rechazada/Cancelada -> Gris
-      convertido: 'bg-emerald-50 text-emerald-700 border-emerald-200', // Convertida -> Verde Oscuro
+      solicitud_recibida: 'bg-ituka-info-soft text-ituka-info border-ituka-info/20',
+      en_conversacion: 'bg-ituka-warning-soft text-ituka-warning border-ituka-warning/20',
+      confirmado: 'bg-ituka-success-soft text-ituka-success border-ituka-success/20',
+      cancelado: 'bg-ituka-danger-soft text-ituka-danger border-ituka-danger/20',
+      convertido: 'bg-ituka-success-soft text-ituka-success border-ituka-success/20',
 
       // PEDIDOS (Estados adicionales)
-      pagado: 'bg-teal-50 text-teal-700 border-teal-200',
-      en_preparacion: 'bg-amber-50 text-amber-700 border-amber-200',
-      enviado: 'bg-purple-50 text-purple-700 border-purple-200',
-      listo_para_recoger: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-      entregado: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      pagado: 'bg-ituka-success-soft text-ituka-success border-ituka-success/20',
+      en_preparacion: 'bg-ituka-warning-soft text-ituka-warning border-ituka-warning/20',
+      enviado: 'bg-ituka-info-soft text-ituka-info border-ituka-info/20',
+      listo_para_recoger: 'bg-ituka-info-soft text-ituka-info border-ituka-info/20',
+      entregado: 'bg-ituka-success-soft text-ituka-success border-ituka-success/20',
       
       // PRODUCTOS
-      active: 'bg-[#E8F5E9] text-ituka-green border-green-200',
+      active: 'bg-ituka-success-soft text-ituka-success border-ituka-success/20',
       inactive: 'bg-stone-100 text-stone-500 border-stone-200',
     };
 
