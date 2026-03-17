@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -10,8 +10,15 @@ export default function WelcomeScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) return;
+    const redirectPath = user.role !== 'customer' ? '/admin' : '/dashboard';
+    navigate(redirectPath, { replace: true });
+  }, [authLoading, user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +29,7 @@ export default function WelcomeScreen() {
       const user = await login(identifier, password, rememberMe);
       if (user) {
         // Redirección segura basada en rol
-        const redirectPath = user.role !== 'customer' ? '/admin' : '/';
+        const redirectPath = user.role !== 'customer' ? '/admin' : '/dashboard';
         // Usar replace para evitar volver atrás al login
         navigate(redirectPath, { replace: true });
       } else {

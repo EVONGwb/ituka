@@ -41,7 +41,7 @@ export default function Register() {
         email: formData.email,
         password: formData.password
       });
-      navigate('/');
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       setError(err.message || 'Error al registrarse');
     } finally {
